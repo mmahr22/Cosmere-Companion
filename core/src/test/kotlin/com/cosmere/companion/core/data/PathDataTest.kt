@@ -52,8 +52,11 @@ class PathDataTest {
             talent.prerequisiteTalents.forEach { prereq ->
                 assertTrue(prereq in ids, "${talent.id} references unknown talent $prereq")
             }
+            val validSkillIds =
+                Skill.entries.map { it.name }.toSet() +
+                    com.cosmere.companion.core.model.Surge.entries.map { it.name }.toSet()
             talent.prerequisiteSkills.keys.forEach { skillId ->
-                assertNotNull(Skill.valueOf(skillId), "${talent.id} references unknown skill $skillId")
+                assertTrue(skillId in validSkillIds, "${talent.id} references unknown skill $skillId")
             }
         }
     }

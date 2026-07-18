@@ -82,6 +82,17 @@
       "sprenType": "ashspren",
       "surgeIds": ["abrasion", "division"],
       "page": 132
+    },
+    {
+      "id": "edgedancer",
+      "name": "Edgedancer",
+      "type": "radiant",
+      "keyTalentId": "first_ideal_edgedancer",
+      "specialties": ["Cultivationspren Bond"],
+      "summary": "An order bonded to cultivationspren, revering Cultivation. Their surges are Abrasion (friction control and skating) and Progression (growth and regrowth healing). Their philosophy emphasizes remembering the forgotten and listening to the ignored.",
+      "sprenType": "cultivationspren",
+      "surgeIds": ["abrasion", "progression"],
+      "page": 140
     }
   ]
 }
