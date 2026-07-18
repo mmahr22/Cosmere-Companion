@@ -315,6 +315,83 @@
           "page": 221
         }
       ]
+    },
+    {
+      "id": "gravitation",
+      "name": "Gravitation",
+      "attributeId": "AWARENESS",
+      "radiantOrders": ["skybreaker", "windrunner"],
+      "summary": "Basic Lashings — redirects gravity. Base surge: touch a target within reach (up to your surge size, free hand) and spend 1+ Investiture (1/round to maintain) to change its gravity direction using your gravitation rate (starts at 25 feet). A willing character gains a flying rate equal to that rate (or infuse yourself, any size); an object moves that distance each turn in a straight line. No fall damage on impact unless aloft when the surge ends. Can't target Invested/infused objects. Against an unwilling character: Gravitation test vs. Physical defense, then spend 1 Investiture to move them (they become Restrained until your next turn; they can grab a passed object one size larger via an opposed Avoid Danger/Agility test to stop). Tricky maneuvers (highstorms, tight gaps) need a Gravitation test at the GM's DC.",
+      "page": 222,
+      "talents": [
+        {
+          "id": "surge_flying_ace",
+          "name": "Flying Ace",
+          "activation": "special",
+          "focusCost": 1,
+          "prerequisiteIdealSpoken": 1,
+          "summary": "While maintaining a Basic Lashing on yourself, fly up to your gravitation rate; once during that movement, spend 1 focus to make a melee weapon attack mid-flight, then continue moving. Your gravitation rate permanently increases to 40 feet.",
+          "page": 224
+        },
+        {
+          "id": "surge_stable_flight",
+          "name": "Stable Flight",
+          "activation": "passive",
+          "prerequisiteTalents": ["surge_flying_ace"],
+          "summary": "While maintaining a Basic Lashing on yourself, your ranged attacks don't gain a disadvantage from flying or unstable footing.",
+          "page": 224
+        },
+        {
+          "id": "surge_group_flight",
+          "name": "Group Flight",
+          "activation": "passive",
+          "prerequisiteTalents": ["surge_stable_flight"],
+          "summary": "Out of combat, when you spend Investiture to infuse yourself or a willing character with a Basic Lashing, also infuse up to your Gravitation ranks in additional willing characters within reach at no extra Investiture cost; their infusions last as long as the original.",
+          "page": 224
+        },
+        {
+          "id": "surge_aerial_squadron",
+          "name": "Aerial Squadron",
+          "activation": "passive",
+          "prerequisiteSkills": {"GRAVITATION": 3},
+          "prerequisiteTalents": ["surge_group_flight"],
+          "summary": "You can use your Group Flight talent in combat.",
+          "page": 224
+        },
+        {
+          "id": "surge_gravitational_slam",
+          "name": "Gravitational Slam",
+          "activation": "special",
+          "prerequisiteIdealSpoken": 1,
+          "summary": "When a Basic Lashing collides an unwilling target with a solid surface, the collision stops the movement early and you may deal 1d4 impact damage per 10 feet moved this turn (die grows with ranks); the target may halve it via Avoid Danger opposed by your Gravitation.",
+          "page": 224
+        },
+        {
+          "id": "surge_multiple_lashings",
+          "name": "Multiple Lashings",
+          "activation": "passive",
+          "prerequisiteTalents": ["surge_gravitational_slam"],
+          "summary": "After succeeding a Gravitation test to move an unwilling character, you may infuse them with Investiture up to your Gravitation ranks (instead of just 1); the effect then lasts until that infusion runs out instead of only until your next turn.",
+          "page": 224
+        },
+        {
+          "id": "surge_lashing_shot",
+          "name": "Lashing Shot",
+          "activation": "special",
+          "prerequisiteTalents": ["surge_gravitational_slam"],
+          "summary": "Touch an unattended object up to your surge size and propel it at a target in your line of effect, spending Investiture equal to the distance divided by your gravitation rate (rounded up). Ranged Gravitation attack vs. Physical defense, rolling 2d4 impact damage (die grows with ranks).",
+          "page": 224
+        },
+        {
+          "id": "surge_master_of_the_skies",
+          "name": "Master of the Skies",
+          "activation": "passive",
+          "prerequisiteTalents": ["surge_group_flight", "surge_lashing_shot"],
+          "prerequisiteTalentsMode": "any",
+          "summary": "While you have at least 1 Investiture, you gain the benefits of being infused with Gravitation without spending Investiture.",
+          "page": 224
+        }
+      ]
     }
   ]
 }
