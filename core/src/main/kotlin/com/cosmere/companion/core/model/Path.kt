@@ -25,6 +25,10 @@ data class GamePath(
     val summary: String,
     val attributeTips: List<String> = emptyList(),
     val skillTips: List<String> = emptyList(),
+    /** Radiant paths only: the bonded spren type (e.g. "ashspren"). */
+    val sprenType: String? = null,
+    /** Radiant paths only: ids of the order's two surges. */
+    val surgeIds: List<String> = emptyList(),
     val page: Int? = null,
 )
 
@@ -42,6 +46,10 @@ data class Talent(
     val prerequisiteTalents: List<String> = emptyList(),
     /** "all" (default) requires every listed talent; "any" requires at least one. */
     val prerequisiteTalentsMode: String = "all",
+    /** Minimum character level, if any (e.g. Ideal talents). */
+    val prerequisiteLevel: Int? = null,
+    /** Radiant only: the Nth Ideal that must already be SPOKEN (goal completed). */
+    val prerequisiteIdealSpoken: Int? = null,
     val prerequisiteOther: String? = null,
     val summary: String,
     val page: Int? = null,

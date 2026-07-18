@@ -71,6 +71,17 @@
       "attributeTips": ["STRENGTH", "SPEED", "WILLPOWER"],
       "skillTips": ["ATHLETICS", "HEAVY_WEAPONRY", "LIGHT_WEAPONRY", "DISCIPLINE", "INTIMIDATION"],
       "page": 114
+    },
+    {
+      "id": "dustbringer",
+      "name": "Dustbringer",
+      "type": "radiant",
+      "keyTalentId": "first_ideal_dustbringer",
+      "specialties": ["Ashspren Bond"],
+      "summary": "The Order of Releasers, bonded to ashspren. Their surges are Abrasion (friction control and skating) and Division (decay and burning destruction). Historically distrusted for their annihilating power; their philosophy centers on confronting and controlling destruction responsibly.",
+      "sprenType": "ashspren",
+      "surgeIds": ["abrasion", "division"],
+      "page": 132
     }
   ]
 }
