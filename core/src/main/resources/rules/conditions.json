@@ -1,0 +1,116 @@
+{
+  "conditions": [
+    {
+      "id": "afflicted",
+      "name": "Afflicted",
+      "summary": "You take the damage listed in brackets at the end of each of your turns in combat, or every 10 seconds out of combat (and after each removal attempt). Unlike most conditions, multiple instances can apply at once, each resolved separately.",
+      "hasBracketValue": true,
+      "cumulative": true,
+      "page": 293
+    },
+    {
+      "id": "determined",
+      "name": "Determined",
+      "summary": "When you fail a test, you may add an Opportunity to the result. Doing so removes this condition.",
+      "hasBracketValue": false,
+      "cumulative": false,
+      "page": 293
+    },
+    {
+      "id": "disoriented",
+      "name": "Disoriented",
+      "summary": "You can't use reactions, your senses always count as obscured, and Perception tests (and similar sensory tests) gain a disadvantage.",
+      "hasBracketValue": false,
+      "cumulative": false,
+      "page": 293
+    },
+    {
+      "id": "empowered",
+      "name": "Empowered",
+      "summary": "Gained when a Radiant swears an Ideal. You gain an advantage on all tests, and your Investiture refills to maximum at the start of each of your turns. Ends at the end of the current scene.",
+      "hasBracketValue": false,
+      "cumulative": false,
+      "page": 293
+    },
+    {
+      "id": "enhanced",
+      "name": "Enhanced",
+      "summary": "The attribute listed in brackets gains the listed bonus, affecting its skill tests, talents that use it, and derived movement — but not your defenses or maximum health, focus, or Investiture. Cumulative, and multiple attributes can be Enhanced at once.",
+      "hasBracketValue": true,
+      "cumulative": true,
+      "page": 294
+    },
+    {
+      "id": "exhausted",
+      "name": "Exhausted",
+      "summary": "Apply the penalty listed in brackets to every test result (after calculating, before resolving; results can't go below 0). Cumulative — new instances add to the penalty. Each long rest reduces the penalty by 1; the condition ends at 0. Reaching Exhausted [-10] from starvation or dehydration is fatal.",
+      "hasBracketValue": true,
+      "cumulative": true,
+      "page": 294
+    },
+    {
+      "id": "focused",
+      "name": "Focused",
+      "summary": "Abilities that cost focus cost 1 less.",
+      "hasBracketValue": false,
+      "cumulative": false,
+      "page": 294
+    },
+    {
+      "id": "immobilized",
+      "name": "Immobilized",
+      "summary": "Your movement rate becomes 0, and you can't move or be moved by other effects.",
+      "hasBracketValue": false,
+      "cumulative": false,
+      "page": 294
+    },
+    {
+      "id": "prone",
+      "name": "Prone",
+      "summary": "You are lying flat: you are Slowed, and melee attacks against you gain an advantage. You can use Brace without cover. Stand up (1 action) to end this; after standing, your movement rate is reduced by 5 until the start of your next turn. Going Prone while climbing or flying causes a fall.",
+      "hasBracketValue": false,
+      "cumulative": false,
+      "page": 294
+    },
+    {
+      "id": "restrained",
+      "name": "Restrained",
+      "summary": "Your movement rate becomes 0, and you gain a disadvantage on all tests except attempts to escape your bonds. Escape DC comes from the applying effect (or the GM).",
+      "hasBracketValue": false,
+      "cumulative": false,
+      "page": 294
+    },
+    {
+      "id": "slowed",
+      "name": "Slowed",
+      "summary": "Your movement rate is halved. If applied mid-movement, halve your remaining movement (rounded up).",
+      "hasBracketValue": false,
+      "cumulative": false,
+      "page": 295
+    },
+    {
+      "id": "stunned",
+      "name": "Stunned",
+      "summary": "In combat: you lose any reactions, gain two fewer actions on your turn, and don't gain a reaction. Out of combat: you move and react slowly at the GM's discretion.",
+      "hasBracketValue": false,
+      "cumulative": false,
+      "page": 295
+    },
+    {
+      "id": "surprised",
+      "name": "Surprised",
+      "summary": "You lose any reactions, don't gain a reaction at the start of combat or on your turn, can't take a fast turn, and gain one fewer action. Removed after your next turn.",
+      "hasBracketValue": false,
+      "cumulative": false,
+      "page": 295
+    },
+    {
+      "id": "unconscious",
+      "name": "Unconscious",
+      "summary": "Movement 0; you can't move, communicate, or perceive your surroundings, and you fall Prone and drop what you're holding. No actions or reactions except Breathe Stormlight and Regenerate (if Radiant); in combat you always go slow. PCs may wake at the end of any of their turns, or when healed to at least 1 health.",
+      "hasBracketValue": false,
+      "cumulative": false,
+      "page": 295
+    }
+  ]
+}
