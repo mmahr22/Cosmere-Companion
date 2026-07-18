@@ -4,6 +4,9 @@ import com.cosmere.companion.core.model.Condition
 import com.cosmere.companion.core.model.ConditionsFile
 import com.cosmere.companion.core.model.GamePath
 import com.cosmere.companion.core.model.PathsFile
+import com.cosmere.companion.core.model.SurgeEntry
+import com.cosmere.companion.core.model.SurgeScalingRow
+import com.cosmere.companion.core.model.SurgesFile
 import com.cosmere.companion.core.model.Talent
 import com.cosmere.companion.core.model.TalentsFile
 import kotlinx.serialization.json.Json
@@ -33,11 +36,21 @@ object RulesRepository {
         json.decodeFromString<TalentsFile>(readResource("/rules/talents.json")).talents
     }
 
+    private val surgesFile: SurgesFile by lazy {
+        json.decodeFromString<SurgesFile>(readResource("/rules/surges.json"))
+    }
+
+    val surges: List<SurgeEntry> get() = surgesFile.surges
+
+    val surgeScaling: List<SurgeScalingRow> get() = surgesFile.scaling
+
     fun conditionById(id: String): Condition? = conditions.firstOrNull { it.id == id }
 
     fun pathById(id: String): GamePath? = paths.firstOrNull { it.id == id }
 
     fun talentsForPath(pathId: String): List<Talent> = talents.filter { it.pathId == pathId }
+
+    fun surgeById(id: String): SurgeEntry? = surges.firstOrNull { it.id == id }
 
     private fun readResource(path: String): String =
         requireNotNull(RulesRepository::class.java.getResource(path)) {

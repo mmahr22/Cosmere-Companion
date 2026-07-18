@@ -1,0 +1,242 @@
+{
+  "scaling": [
+    { "ranks": 1, "dieSize": 4, "effectSizeName": "Small", "effectSizeFeet": 2.5 },
+    { "ranks": 2, "dieSize": 6, "effectSizeName": "Medium", "effectSizeFeet": 5 },
+    { "ranks": 3, "dieSize": 8, "effectSizeName": "Large", "effectSizeFeet": 10 },
+    { "ranks": 4, "dieSize": 10, "effectSizeName": "Huge", "effectSizeFeet": 15 },
+    { "ranks": 5, "dieSize": 12, "effectSizeName": "Gargantuan", "effectSizeFeet": 20 }
+  ],
+  "surges": [
+    {
+      "id": "abrasion",
+      "name": "Abrasion",
+      "attributeId": "SPEED",
+      "radiantOrders": ["dustbringer", "edgedancer"],
+      "summary": "Alters friction on surfaces. Base surge: spend 1+ Investiture (touch, free hand) to infuse an object or surface within reach — up to your surge size, not characters or Invested/infused objects — making it nearly frictionless (1 Investiture/round). Or infuse yourself (any size) to gain Skate (spend 2 focus to Move as a free action in a straight line) and Slide (count one size smaller when squeezing; advantage to escape friction/pressure restraints). Others interacting with a slicked surface must win Agility vs. your Abrasion or fall Prone / drop the object; unwilling characters' gear requires an Abrasion test vs. their Physical defense.",
+      "page": 212,
+      "talents": [
+        {
+          "id": "surge_frictionless_motion",
+          "name": "Frictionless Motion",
+          "activation": "passive",
+          "prerequisiteIdealSpoken": 1,
+          "summary": "While infused with Abrasion, your movement rate increases by 10 feet and you ignore Slowed from difficult terrain, climbing, crawling, and swimming.",
+          "page": 213
+        },
+        {
+          "id": "surge_graceful_skating",
+          "name": "Graceful Skating",
+          "activation": "passive",
+          "prerequisiteTalents": ["surge_frictionless_motion"],
+          "summary": "When you Skate, you aren't restricted to moving in a straight line.",
+          "page": 213
+        },
+        {
+          "id": "surge_slippery_target",
+          "name": "Slippery Target",
+          "activation": "passive",
+          "prerequisiteTalents": ["surge_graceful_skating"],
+          "summary": "While infused with Abrasion, attacks can't graze you and Reactive Strikes against you gain a disadvantage.",
+          "page": 214
+        },
+        {
+          "id": "surge_slick_combatant",
+          "name": "Slick Combatant",
+          "activation": "passive",
+          "prerequisiteTalents": ["surge_slippery_target"],
+          "summary": "While infused with Abrasion, you may interrupt a Move to use other actions, then finish the remaining movement. Once per round, a melee weapon attack made mid-Move rolls an extra damage die (d4, growing with your Abrasion ranks); if you do, the GM may spend a Complication to knock you Prone and end the Move.",
+          "page": 214
+        },
+        {
+          "id": "surge_reverse_abrasion",
+          "name": "Reverse Abrasion",
+          "activation": "special",
+          "prerequisiteIdealSpoken": 1,
+          "summary": "Your Abrasion infusions can increase friction instead: characters gain an advantage on Agility and Athletics tests to interact with the target and ignore Slowed the surface would impose.",
+          "page": 214
+        },
+        {
+          "id": "surge_stormlight_reclamation_abrasion",
+          "name": "Stormlight Reclamation",
+          "activation": "free",
+          "prerequisiteTalents": ["surge_reverse_abrasion"],
+          "summary": "After your infusions expend Investiture at the start of your turn, end any number of infusions within reach and recover the Investiture remaining in them.",
+          "page": 213
+        },
+        {
+          "id": "surge_distant_surgebinding_abrasion",
+          "name": "Distant Surgebinding",
+          "activation": "passive",
+          "prerequisiteTalents": ["surge_reverse_abrasion"],
+          "summary": "Use your surges and their talents as though your reach were 20 feet, without needing to touch the target.",
+          "page": 213
+        },
+        {
+          "id": "surge_smooth_operator",
+          "name": "Smooth Operator",
+          "activation": "passive",
+          "prerequisiteTalents": ["surge_distant_surgebinding_abrasion", "surge_slippery_target"],
+          "prerequisiteTalentsMode": "any",
+          "summary": "While you have at least 1 Investiture, you gain the benefits of being infused with Abrasion without spending Investiture, and Skate costs 1 less focus.",
+          "page": 214
+        }
+      ]
+    },
+    {
+      "id": "adhesion",
+      "name": "Adhesion",
+      "attributeId": "PRESENCE",
+      "radiantOrders": ["windrunner"],
+      "summary": "Binds things together via Full Lashings. Base surge: spend 1+ Investiture (touch, free hand) to stick two unsecured objects within reach and within 5 feet of each other (each up to your surge size; one may instead be a floor/wall/ceiling of any size). Costs 1 Investiture/round. Can't target characters or Invested/infused objects; unwilling characters' gear requires an Adhesion test vs. their Physical defense. Breaking a Lashing takes an Athletics test opposed by your Adhesion. (Bondsmiths also wield this surge, but aren't playable.)",
+      "page": 215,
+      "talents": [
+        {
+          "id": "surge_binding_strike",
+          "name": "Binding Strike",
+          "activation": "special",
+          "focusCost": 2,
+          "prerequisiteIdealSpoken": 1,
+          "summary": "After you hit with a melee attack, spend 1 action or 2 focus to use Adhesion without an action: one target must be an object the struck character holds or wears (the infusion test auto-succeeds), and the paired object/surface within 5 feet needs no touch or free hand.",
+          "page": 216
+        },
+        {
+          "id": "surge_binding_shot",
+          "name": "Binding Shot",
+          "activation": "passive",
+          "prerequisiteTalents": ["surge_binding_strike"],
+          "summary": "Binding Strike also works when you hit with a ranged attack at any distance, without touching the targets or having a hand free.",
+          "page": 216
+        },
+        {
+          "id": "surge_adhesive_trap",
+          "name": "Adhesive Trap",
+          "activation": "special",
+          "prerequisiteTalents": ["surge_binding_shot"],
+          "summary": "Infuse just a portion of one surface (up to your surge size). Any character touching that area — on infusion, while moving through it, or when forced into it — is automatically Fully Lashed to the surface for the infusion's duration.",
+          "page": 216
+        },
+        {
+          "id": "surge_stormlight_reclamation_adhesion",
+          "name": "Stormlight Reclamation",
+          "activation": "free",
+          "prerequisiteIdealSpoken": 1,
+          "summary": "After your infusions expend Investiture at the start of your turn, end any number of infusions within reach and recover the Investiture remaining in them.",
+          "page": 217
+        },
+        {
+          "id": "surge_distant_surgebinding_adhesion",
+          "name": "Distant Surgebinding",
+          "activation": "passive",
+          "prerequisiteTalents": ["surge_stormlight_reclamation_adhesion"],
+          "summary": "Use your surges and their talents as though your reach were 20 feet, without touching the target (adhered objects must still be within 5 feet of each other).",
+          "page": 216
+        },
+        {
+          "id": "surge_extended_adhesion",
+          "name": "Extended Adhesion",
+          "activation": "passive",
+          "prerequisiteTalents": ["surge_distant_surgebinding_adhesion"],
+          "summary": "Full Lashings expend 1 Investiture per number of rounds equal to your Adhesion ranks, instead of every round.",
+          "page": 217
+        },
+        {
+          "id": "surge_living_adhesion",
+          "name": "Living Adhesion",
+          "activation": "passive",
+          "prerequisiteTalents": ["surge_extended_adhesion"],
+          "summary": "You may target characters directly with Adhesion (tested like targeting their possessions). A character Lashed to something larger than them is Restrained, takes a disadvantage on physical tests, and attacks against them gain an advantage.",
+          "page": 217
+        },
+        {
+          "id": "surge_superior_bond",
+          "name": "Superior Bond",
+          "activation": "passive",
+          "prerequisiteTalents": ["surge_adhesive_trap", "surge_extended_adhesion"],
+          "prerequisiteTalentsMode": "any",
+          "summary": "When a character with Strength no higher than your Adhesion ranks tries to break one of your Full Lashings, you win the opposed test automatically.",
+          "page": 217
+        }
+      ]
+    },
+    {
+      "id": "cohesion",
+      "name": "Cohesion",
+      "attributeId": "WILLPOWER",
+      "radiantOrders": ["stoneward", "willshaper"],
+      "summary": "Stoneshaping — softens matter at the axi level. Base surge: infuse 1+ Investiture (touch, free hand) into unattended stone within reach (up to your surge size) to make it moldable like clay (1 Investiture/round); rough shaping is immediate, intricate work takes Interact actions or Cohesion tests. Can't target characters or Invested/infused objects; surfaces bearing an unwilling character require a Cohesion test vs. their Physical defense. When the infusion ends the stone resolidifies — anything caught inside is Immobilized (possibly Restrained) until freed via Athletics opposed by your Cohesion.",
+      "page": 217,
+      "talents": [
+        {
+          "id": "surge_stone_spear",
+          "name": "Stone Spear",
+          "activation": "action2",
+          "investitureCost": 1,
+          "prerequisiteIdealSpoken": 1,
+          "summary": "Spend 1 Investiture: ranged Cohesion attack vs. Physical defense of a target within 60 feet, rolling 2d4 impact damage.",
+          "page": 218
+        },
+        {
+          "id": "surge_sinkhole",
+          "name": "Sinkhole",
+          "activation": "action2",
+          "investitureCost": 1,
+          "prerequisiteTalents": ["surge_stone_spear"],
+          "summary": "Spend 1 Investiture; choose a stone-ground area up to your surge size and characters touching it. One Cohesion test vs. each target's Cognitive defense; each success sinks that target into the ground, Immobilized.",
+          "page": 219
+        },
+        {
+          "id": "surge_tunneling",
+          "name": "Tunneling",
+          "activation": "special",
+          "investitureCost": 1,
+          "prerequisiteTalents": ["surge_sinkhole"],
+          "summary": "Spend 1 Investiture to infuse yourself: move through stone as if through difficult terrain, leaving a 5-foot tunnel others can follow; maintain for 1 Investiture at the start of each turn.",
+          "page": 219
+        },
+        {
+          "id": "surge_memories_of_stone",
+          "name": "Memories of Stone",
+          "activation": "special",
+          "investitureCost": 1,
+          "prerequisiteIdealSpoken": 1,
+          "summary": "Spend 1 Investiture to commune for 1 round with stone you're touching, receiving cryptic images and whispers of the area's history; interpretation may require a Cohesion test (GM's DC).",
+          "page": 218
+        },
+        {
+          "id": "surge_true_stoneshaping",
+          "name": "True Stoneshaping",
+          "activation": "passive",
+          "prerequisiteSkills": {"COHESION": 2},
+          "prerequisiteTalents": ["surge_memories_of_stone"],
+          "summary": "Shape infused stone intricately and extensively without spending additional actions or time.",
+          "page": 218
+        },
+        {
+          "id": "surge_flowing_earth",
+          "name": "Flowing Earth",
+          "activation": "special",
+          "prerequisiteTalents": ["surge_true_stoneshaping"],
+          "summary": "After using Cohesion or spending at least 1 action on its talents, the stone underfoot pushes you up to 5 feet × your Cohesion ranks in any direction (including upward on a pillar) without extra Investiture; this movement doesn't trigger Reactive Strikes.",
+          "page": 218
+        },
+        {
+          "id": "surge_through_the_stone",
+          "name": "Through the Stone",
+          "activation": "passive",
+          "prerequisiteIdealSpoken": 1,
+          "summary": "Use your surges and their talents as though your reach were 20 feet.",
+          "page": 218
+        },
+        {
+          "id": "surge_unbound_cohesion",
+          "name": "Unbound Cohesion",
+          "activation": "passive",
+          "prerequisiteSkills": {"COHESION": 4},
+          "prerequisiteTalents": ["surge_through_the_stone"],
+          "summary": "Use Cohesion on any solid material that isn't alive, Invested, or infused with Stormlight — not just stone.",
+          "page": 218
+        }
+      ]
+    }
+  ]
+}
