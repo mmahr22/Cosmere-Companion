@@ -29,6 +29,23 @@ class PathDataTest {
     }
 
     @Test
+    fun `every path has exactly one key talent and unique talent ids`() {
+        RulesRepository.paths.forEach { path ->
+            val talents = RulesRepository.talentsForPath(path.id)
+            assertEquals(1, talents.count { it.isKey }, "key talents in ${path.id}")
+            assertEquals(path.keyTalentId, talents.first { it.isKey }.id)
+            talents.filterNot { it.isKey }.forEach { talent ->
+                assertTrue(
+                    talent.specialty in path.specialties,
+                    "${talent.id} has unknown specialty ${talent.specialty}",
+                )
+            }
+        }
+        val ids = RulesRepository.talents.map { it.id }
+        assertEquals(ids.size, ids.toSet().size, "duplicate talent ids")
+    }
+
+    @Test
     fun `talent prerequisites reference real talents and skills`() {
         val ids = RulesRepository.talents.map { it.id }.toSet()
         RulesRepository.talents.forEach { talent ->

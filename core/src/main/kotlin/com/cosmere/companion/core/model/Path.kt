@@ -40,6 +40,8 @@ data class Talent(
     val focusCost: Int? = null,
     val prerequisiteSkills: Map<String, Int> = emptyMap(),
     val prerequisiteTalents: List<String> = emptyList(),
+    /** "all" (default) requires every listed talent; "any" requires at least one. */
+    val prerequisiteTalentsMode: String = "all",
     val prerequisiteOther: String? = null,
     val summary: String,
     val page: Int? = null,

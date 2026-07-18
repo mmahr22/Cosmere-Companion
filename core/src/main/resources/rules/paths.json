@@ -11,6 +11,18 @@
       "attributeTips": ["AWARENESS", "INTELLECT", "SPEED"],
       "skillTips": ["AGILITY", "DECEPTION", "DEDUCTION", "INSIGHT", "LIGHT_WEAPONRY", "THIEVERY"],
       "page": 74
+    },
+    {
+      "id": "envoy",
+      "name": "Envoy",
+      "type": "heroic",
+      "startingSkillId": "DISCIPLINE",
+      "keyTalentId": "rousing_presence",
+      "specialties": ["Diplomat", "Faithful", "Mentor"],
+      "summary": "A path for steadfast speakers who bolster allies and defuse enemies through force of conviction. Specialties: Diplomat (challenging and pacifying opponents), Faithful (sustaining allies' focus and resolve), Mentor (teaching, guiding, and reviving companions).",
+      "attributeTips": ["PRESENCE", "WILLPOWER"],
+      "skillTips": ["DISCIPLINE", "INSIGHT", "LEADERSHIP", "LORE", "PERSUASION"],
+      "page": 82
     }
   ]
 }
