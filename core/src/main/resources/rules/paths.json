@@ -126,6 +126,17 @@
       "sprenType": "highspren",
       "surgeIds": ["division", "gravitation"],
       "page": 164
+    },
+    {
+      "id": "stoneward",
+      "name": "Stoneward",
+      "type": "radiant",
+      "keyTalentId": "first_ideal_stoneward",
+      "specialties": ["Peakspren Bond"],
+      "summary": "An order bonded to peakspren. Their surges are Cohesion (shaping and moving through stone) and Tension (stiffening materials). Their philosophy centers on being there when needed and standing with allies through hardship.",
+      "sprenType": "peakspren",
+      "surgeIds": ["cohesion", "tension"],
+      "page": 172
     }
   ]
 }
