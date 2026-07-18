@@ -59,6 +59,18 @@
       "attributeTips": ["INTELLECT", "PRESENCE", "SPEED", "STRENGTH"],
       "skillTips": ["CRAFTING", "DEDUCTION", "LORE", "MEDICINE"],
       "page": 106
+    },
+    {
+      "id": "warrior",
+      "name": "Warrior",
+      "type": "heroic",
+      "startingSkillId": "ATHLETICS",
+      "keyTalentId": "vigilant_stance",
+      "specialties": ["Duelist", "Shardbearer", "Soldier"],
+      "summary": "A path for fighters built on stances, discipline, and battlefield endurance. Specialties: Duelist (fighting stances and dueling pressure), Shardbearer (Shardblade, Shardplate, and heavy shard combat), Soldier (formation fighting and staying power).",
+      "attributeTips": ["STRENGTH", "SPEED", "WILLPOWER"],
+      "skillTips": ["ATHLETICS", "HEAVY_WEAPONRY", "LIGHT_WEAPONRY", "DISCIPLINE", "INTIMIDATION"],
+      "page": 114
     }
   ]
 }
