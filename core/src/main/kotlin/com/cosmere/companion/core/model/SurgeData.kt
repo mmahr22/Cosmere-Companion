@@ -40,8 +40,21 @@ data class SurgeEntry(
     val page: Int? = null,
 )
 
+/** One row of the Transformation Difficulty Classes table (chapter 6). */
+@Serializable
+data class TransformationDcRow(
+    val fromCategory: String,
+    val toSolids: Int,
+    val toOrganics: Int,
+    val toLiquids: Int,
+    val toVapors: Int,
+    val toClearAir: Int,
+    val toFlame: Int? = null,
+)
+
 @Serializable
 internal data class SurgesFile(
     val scaling: List<SurgeScalingRow>,
     val surges: List<SurgeEntry>,
+    val transformationDcTable: List<TransformationDcRow> = emptyList(),
 )

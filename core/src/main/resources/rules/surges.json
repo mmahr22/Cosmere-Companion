@@ -6,6 +6,14 @@
     { "ranks": 4, "dieSize": 10, "effectSizeName": "Huge", "effectSizeFeet": 15 },
     { "ranks": 5, "dieSize": 12, "effectSizeName": "Gargantuan", "effectSizeFeet": 20 }
   ],
+  "transformationDcTable": [
+    { "fromCategory": "Solids", "toSolids": 10, "toOrganics": 10, "toLiquids": 15, "toVapors": 20, "toClearAir": 25, "toFlame": 30 },
+    { "fromCategory": "Organics", "toSolids": 10, "toOrganics": 10, "toLiquids": 10, "toVapors": 15, "toClearAir": 20, "toFlame": 25 },
+    { "fromCategory": "Liquids", "toSolids": 15, "toOrganics": 10, "toLiquids": 10, "toVapors": 10, "toClearAir": 15, "toFlame": 20 },
+    { "fromCategory": "Vapors", "toSolids": 20, "toOrganics": 15, "toLiquids": 10, "toVapors": 10, "toClearAir": 10, "toFlame": 15 },
+    { "fromCategory": "Clear Air", "toSolids": 25, "toOrganics": 20, "toLiquids": 15, "toVapors": 10, "toClearAir": 10, "toFlame": 10 },
+    { "fromCategory": "Flame", "toSolids": 30, "toOrganics": 25, "toLiquids": 20, "toVapors": 15, "toClearAir": 10, "toFlame": null }
+  ],
   "surges": [
     {
       "id": "abrasion",
@@ -626,6 +634,84 @@
           "prerequisiteTalentsMode": "any",
           "summary": "Your Hardened Defense grants +4 Physical defense instead of +2. Weapons you temporarily create with Tension gain an extra damage die (d4, growing with your Tension ranks).",
           "page": 231
+        }
+      ]
+    },
+    {
+      "id": "transformation",
+      "name": "Transformation",
+      "attributeId": "WILLPOWER",
+      "radiantOrders": ["elsecaller", "lightweaver"],
+      "summary": "Soulcasting — transmutes one material into another. Base surge: touch a non-living object or surface within reach (up to your surge size); make a Transformation test against a DC set by a 6x6 material-category table (Solids/Organics/Liquids/Vapors/Clear Air, plus Flame with a talent) — same or adjacent categories are easy (DC 10), distant ones are hard (DC up to 30). On success, spend Investiture equal to the surge-size cost (1 Small–5 Gargantuan) and the target becomes that material; on failure you spend nothing but can't reattempt that same object this scene. Can't target Invested/infused objects, or initially target living things (talents unlock that). Peering into Shadesmar: spend 2 Investiture and Use a Skill for a Transformation test to borrow a Transportation effect and perceive 10 feet around you in the Cognitive Realm.",
+      "page": 233,
+      "talents": [
+        {
+          "id": "surge_soulcast_defense",
+          "name": "Soulcast Defense",
+          "activation": "reaction",
+          "investitureCost": 1,
+          "prerequisiteIdealSpoken": 1,
+          "summary": "Before you or a reachable ally is hit by a ranged projectile, spend 1 Investiture to test Transformation against a DC equal to the attack's test result (choose to use this reaction after learning the DC). Failure: the attack grazes instead of hitting. Success: it misses instead (and can't graze), and you transform the projectile into a material of your choice — a non-solid choice destroys it.",
+          "page": 235
+        },
+        {
+          "id": "surge_soulcast_parry",
+          "name": "Soulcast Parry",
+          "activation": "passive",
+          "prerequisiteTalents": ["surge_soulcast_defense"],
+          "summary": "Soulcast Defense now also works against melee weapon attacks, not just ranged ones.",
+          "page": 235
+        },
+        {
+          "id": "surge_flamecasting",
+          "name": "Flamecasting",
+          "activation": "passive",
+          "prerequisiteTalents": ["surge_soulcast_parry"],
+          "summary": "Adds a sixth material category, 'Flame,' past Clear Air (DC 30 from most distant materials, e.g. stone to flame). Soulcasting into flame briefly ignites flammable objects before dissipating, and simultaneously makes a Physical-defense attack against each character within 5 feet, rolling 2d4 energy damage (die grows with ranks), using the same test result.",
+          "page": 235
+        },
+        {
+          "id": "surge_expansive_transmuter",
+          "name": "Expansive Transmuter",
+          "activation": "passive",
+          "prerequisiteTalents": ["surge_flamecasting"],
+          "summary": "Soulcasting non-living material costs 2 less Investiture (minimum 1) — Small, Medium, or Large objects now cost just 1 Investiture.",
+          "page": 235
+        },
+        {
+          "id": "surge_distant_surgebinding_transformation",
+          "name": "Distant Surgebinding",
+          "activation": "passive",
+          "prerequisiteTalents": ["surge_soulcast_parry"],
+          "summary": "Use your surges and their talents as though your reach were 20 feet, without touching the target.",
+          "page": 235
+        },
+        {
+          "id": "surge_persistent_transformation",
+          "name": "Persistent Transformation",
+          "activation": "passive",
+          "prerequisiteSkills": {"TRANSFORMATION": 2},
+          "prerequisiteTalents": ["surge_distant_surgebinding_transformation"],
+          "summary": "When transforming non-living objects, your test's DC is capped at 15. After failing to Soulcast an object, you may retry it in the same scene, spending 1 additional Investiture per prior failure on that object if you succeed.",
+          "page": 235
+        },
+        {
+          "id": "surge_living_soulcasting",
+          "name": "Living Soulcasting",
+          "activation": "special",
+          "investitureCost": 1,
+          "prerequisiteIdealSpoken": 1,
+          "summary": "Spend 1 Investiture; melee Transformation attack vs. Spiritual defense of a living character, plant, or organism within reach, rolling 3d4 spirit damage (die grows with ranks). Reducing them to 0 health kills them and lets you transform their body into any material at no extra cost.",
+          "page": 235
+        },
+        {
+          "id": "surge_bloodcasting",
+          "name": "Bloodcasting",
+          "activation": "special",
+          "investitureCost": 1,
+          "prerequisiteTalents": ["surge_living_soulcasting"],
+          "summary": "While touching a character, spend 1 Investiture; DC 15 Transformation test to cleanse their blood — success ends any poison on them and reduces one injury's recovery time by 5 days. The GM may spend a Complication from this test to reduce the target's maximum health by twice their level until after their next long rest.",
+          "page": 235
         }
       ]
     }

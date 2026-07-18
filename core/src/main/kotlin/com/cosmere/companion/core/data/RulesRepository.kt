@@ -44,6 +44,9 @@ object RulesRepository {
 
     val surgeScaling: List<SurgeScalingRow> get() = surgesFile.scaling
 
+    val transformationDcTable: List<com.cosmere.companion.core.model.TransformationDcRow>
+        get() = surgesFile.transformationDcTable
+
     fun conditionById(id: String): Condition? = conditions.firstOrNull { it.id == id }
 
     fun pathById(id: String): GamePath? = paths.firstOrNull { it.id == id }
