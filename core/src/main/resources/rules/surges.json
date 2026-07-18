@@ -237,6 +237,84 @@
           "page": 218
         }
       ]
+    },
+    {
+      "id": "division",
+      "name": "Division",
+      "attributeId": "INTELLECT",
+      "radiantOrders": ["dustbringer", "skybreaker"],
+      "summary": "Decay and destruction. Base surge: touch a target (free hand) within reach. Vs. a character: spend 1 Investiture for a melee Division attack vs. Spiritual defense, 3d4 spirit damage (die grows with ranks); reducing them to 0 health crumbles them to dust. Vs. an object/area: spend Investiture equal to the surge-size cost and decay it as you choose (crumble, etch, smoke); in combat or other tense situations you must first succeed a Division test against a material-based DC (clear air 0, vapor 5, liquid 10, organics 15, solids 20). Can't target Invested/infused objects; unwilling characters' possessions/support surfaces need a Division test vs. their Physical defense or the material DC, whichever is higher.",
+      "page": 219,
+      "talents": [
+        {
+          "id": "surge_bodily_decay",
+          "name": "Bodily Decay",
+          "activation": "special",
+          "prerequisiteIdealSpoken": 1,
+          "summary": "When you hit with a Division attack, spend an Opportunity to inflict an injury on one target of that attack.",
+          "page": 221
+        },
+        {
+          "id": "surge_igniting_division",
+          "name": "Igniting Division",
+          "activation": "special",
+          "investitureCost": 1,
+          "prerequisiteTalents": ["surge_bodily_decay"],
+          "summary": "When you affect a target with Division, spend 1+ additional Investiture to set them alight for that many rounds (testing Division under pressure first, if not already required): they become Afflicted, and the area within 5 feet is lit and becomes dangerous terrain, both dealing energy damage equal to your Division modifier. The target or an adjacent character may end the Afflicted early with an opposed Agility/Athletics test (the fire keeps burning regardless).",
+          "page": 221
+        },
+        {
+          "id": "surge_gout_of_flame",
+          "name": "Gout of Flame",
+          "activation": "special",
+          "investitureCost": 3,
+          "prerequisiteTalents": ["surge_igniting_division"],
+          "summary": "Spend 3 Investiture; choose an area one size larger than your Division normally affects (25 feet at 5 ranks). Division attack vs. Physical defense of each target in the area, rolling 3d4 energy damage (die grows with ranks).",
+          "page": 221
+        },
+        {
+          "id": "surge_devastating_division",
+          "name": "Devastating Division",
+          "activation": "passive",
+          "prerequisiteTalents": ["surge_gout_of_flame"],
+          "summary": "When you roll damage for Division or its talents, roll an additional damage die of the same size.",
+          "page": 221
+        },
+        {
+          "id": "surge_eroding_escape",
+          "name": "Eroding Escape",
+          "activation": "special",
+          "prerequisiteIdealSpoken": 1,
+          "summary": "Spend 1+ Investiture to end that many effects on yourself or a reachable ally, where each ended effect is either the Immobilized/Restrained condition or a disadvantage on physical tests; the underlying source may reassert itself later at the GM's discretion.",
+          "page": 221
+        },
+        {
+          "id": "surge_spark_sending",
+          "name": "Spark Sending",
+          "activation": "passive",
+          "prerequisiteTalents": ["surge_bodily_decay", "surge_eroding_escape"],
+          "prerequisiteTalentsMode": "any",
+          "summary": "Use Division and its talents as though your reach were 20 feet, as long as a solid surface connects you to the target.",
+          "page": 221
+        },
+        {
+          "id": "surge_inescapable_spark",
+          "name": "Inescapable Spark",
+          "activation": "passive",
+          "prerequisiteTalents": ["surge_spark_sending"],
+          "summary": "Your Spark Sending reach extends to your spren bond range and no longer needs line of effect (just the ability to sense the target); targets also can't Brace against your Division attacks.",
+          "page": 221
+        },
+        {
+          "id": "surge_unleashed_entropy",
+          "name": "Unleashed Entropy",
+          "activation": "passive",
+          "prerequisiteTalents": ["surge_spark_sending", "surge_gout_of_flame"],
+          "prerequisiteTalentsMode": "any",
+          "summary": "Using the base Division skill (not its talents) costs 1 less action. Your Division Under Pressure DCs are reduced by 5.",
+          "page": 221
+        }
+      ]
     }
   ]
 }
