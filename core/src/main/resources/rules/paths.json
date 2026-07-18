@@ -35,6 +35,18 @@
       "attributeTips": ["SPEED", "AWARENESS", "STRENGTH"],
       "skillTips": ["AGILITY", "PERCEPTION", "STEALTH", "SURVIVAL", "LIGHT_WEAPONRY", "HEAVY_WEAPONRY"],
       "page": 90
+    },
+    {
+      "id": "leader",
+      "name": "Leader",
+      "type": "heroic",
+      "startingSkillId": "LEADERSHIP",
+      "keyTalentId": "decisive_command",
+      "specialties": ["Champion", "Officer", "Politico"],
+      "summary": "A path for commanders who direct allies with a command die and turn battles through coordination, logistics, or intrigue. Specialties: Champion (leading from the front), Officer (troop coordination and supply), Politico (rumor, division, and deception).",
+      "attributeTips": ["PRESENCE", "WILLPOWER", "STRENGTH"],
+      "skillTips": ["LEADERSHIP", "PERSUASION", "ATHLETICS", "DECEPTION", "INTIMIDATION"],
+      "page": 98
     }
   ]
 }
