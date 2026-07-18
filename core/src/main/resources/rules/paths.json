@@ -104,6 +104,17 @@
       "sprenType": "inkspren",
       "surgeIds": ["transformation", "transportation"],
       "page": 148
+    },
+    {
+      "id": "lightweaver",
+      "name": "Lightweaver",
+      "type": "radiant",
+      "keyTalentId": "first_ideal_lightweaver",
+      "specialties": ["Cryptic Bond"],
+      "summary": "An order bonded to Cryptics. Their surges are Illumination (light and sound illusions) and Transformation (Soulcasting). Their progression works through speaking personal Truths, and their philosophy centers on self-honesty and creative expression.",
+      "sprenType": "cryptic",
+      "surgeIds": ["illumination", "transformation"],
+      "page": 156
     }
   ]
 }
