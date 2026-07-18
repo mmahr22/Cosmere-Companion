@@ -551,6 +551,83 @@
           "page": 229
         }
       ]
+    },
+    {
+      "id": "tension",
+      "name": "Tension",
+      "attributeId": "STRENGTH",
+      "radiantOrders": ["stoneward"],
+      "summary": "Stiffens soft materials into rigid ones. Base surge: touch a soft object within reach (free hand), spend 1+ Investiture (1/round) to make it completely rigid, up to your surge size; rough shaping happens at activation, elaborate shaping needs more time. Can't target characters or Invested/infused objects. Hardened Defense: infusing (or first wrapping, then infusing) worn material grants +2 Physical defense to the wearer (doesn't stack from multiple sources). Against an unwilling target's worn/wrapped items: Tension test vs. Physical defense; on success they're Slowed with a disadvantage on physical tests for the duration. A stiffened object can be bent back via an opposed Athletics-vs.-Tension test. Temporary weapons created this way count as improvised non-special weapons without the Fragile trait. (Bondsmiths also wield this surge, but aren't playable.)",
+      "page": 230,
+      "talents": [
+        {
+          "id": "surge_tension_parry",
+          "name": "Tension Parry",
+          "activation": "reaction",
+          "prerequisiteIdealSpoken": 1,
+          "summary": "Before you or a reachable ally is hit or grazed by a Physical-defense attack, infuse Tension into the target's clothing (or wrapped material) as usual; they gain Hardened Defense (+2 Physical defense) for the duration, applying even to the triggering attack — potentially turning a hit into a miss, or negating a graze's effects.",
+          "page": 231
+        },
+        {
+          "id": "surge_rigged_weaponry",
+          "name": "Rigged Weaponry",
+          "activation": "special",
+          "investitureCost": 1,
+          "prerequisiteTalents": ["surge_tension_parry"],
+          "summary": "While wielding a melee weapon and holding 10+ feet of cloth or similar flexible material, spend 1 Investiture as a free action to extend the weapon's reach by 10 feet until the end of your next turn. After hitting with a melee attack, spend an Opportunity or 2 focus to use Tension on an object the target holds/wears without an action, automatically succeeding the infusion test.",
+          "page": 231
+        },
+        {
+          "id": "surge_cloth_mastery",
+          "name": "Cloth Mastery",
+          "activation": "passive",
+          "prerequisiteSkills": {"TENSION": 2},
+          "prerequisiteTalents": ["surge_rigged_weaponry"],
+          "summary": "When creating an object or weapon with Tension, automatically reshape it into anything as elaborate as you wish before it stiffens, with no extra actions or time.",
+          "page": 231
+        },
+        {
+          "id": "surge_fine_control",
+          "name": "Fine Control",
+          "activation": "special",
+          "prerequisiteTalents": ["surge_cloth_mastery"],
+          "summary": "Infuse 1+ Investiture into an unattended object within reach (up to your surge size); it gains current/max health of 5 × your Tension ranks and defenses of 10 + your Tension modifier (breaking and ending the infusion at 0 health). While touching part of it, move it up to 25 feet along surfaces each turn and direct it to interact (free action for mindless tasks, action for tasks needing a test — using your Tension skill instead of the normal one, and requiring you to sense the target); it has no senses of its own.",
+          "page": 231
+        },
+        {
+          "id": "surge_stormlight_reclamation_tension",
+          "name": "Stormlight Reclamation",
+          "activation": "free",
+          "prerequisiteIdealSpoken": 1,
+          "summary": "After your infusions expend Investiture at the start of your turn, end any number of infusions within reach and recover the Investiture remaining in them.",
+          "page": 231
+        },
+        {
+          "id": "surge_extended_tension",
+          "name": "Extended Tension",
+          "activation": "passive",
+          "prerequisiteTalents": ["surge_stormlight_reclamation_tension"],
+          "summary": "Tension infusions expend 1 Investiture per number of rounds equal to your Tension ranks instead of every round. While you have at least 1 Investiture, you may maintain Tension infusions on objects you're holding or wearing at no Investiture cost.",
+          "page": 231
+        },
+        {
+          "id": "surge_surface_tension",
+          "name": "Surface Tension",
+          "activation": "special",
+          "prerequisiteTalents": ["surge_extended_tension"],
+          "summary": "Use Tension on liquid, affecting an area up to twice your normal surge size; for the duration its surface tension increases enough for characters to walk on it like solid ground.",
+          "page": 231
+        },
+        {
+          "id": "surge_clothsmith",
+          "name": "Clothsmith",
+          "activation": "passive",
+          "prerequisiteTalents": ["surge_cloth_mastery", "surge_surface_tension"],
+          "prerequisiteTalentsMode": "any",
+          "summary": "Your Hardened Defense grants +4 Physical defense instead of +2. Weapons you temporarily create with Tension gain an extra damage die (d4, growing with your Tension ranks).",
+          "page": 231
+        }
+      ]
     }
   ]
 }
