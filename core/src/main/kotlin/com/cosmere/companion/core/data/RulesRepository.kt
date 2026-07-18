@@ -2,6 +2,10 @@ package com.cosmere.companion.core.data
 
 import com.cosmere.companion.core.model.Condition
 import com.cosmere.companion.core.model.ConditionsFile
+import com.cosmere.companion.core.model.GamePath
+import com.cosmere.companion.core.model.PathsFile
+import com.cosmere.companion.core.model.Talent
+import com.cosmere.companion.core.model.TalentsFile
 import kotlinx.serialization.json.Json
 
 /**
@@ -21,7 +25,19 @@ object RulesRepository {
         json.decodeFromString<ConditionsFile>(readResource("/rules/conditions.json")).conditions
     }
 
+    val paths: List<GamePath> by lazy {
+        json.decodeFromString<PathsFile>(readResource("/rules/paths.json")).paths
+    }
+
+    val talents: List<Talent> by lazy {
+        json.decodeFromString<TalentsFile>(readResource("/rules/talents.json")).talents
+    }
+
     fun conditionById(id: String): Condition? = conditions.firstOrNull { it.id == id }
+
+    fun pathById(id: String): GamePath? = paths.firstOrNull { it.id == id }
+
+    fun talentsForPath(pathId: String): List<Talent> = talents.filter { it.pathId == pathId }
 
     private fun readResource(path: String): String =
         requireNotNull(RulesRepository::class.java.getResource(path)) {

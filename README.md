@@ -3,9 +3,10 @@
 An unofficial Android companion app for the **Cosmere RPG** (Stormlight Handbook)
 by Brotherwise Games — in the spirit of apps like Fight Club 5e for D&D.
 
-> This is a fan-made, personal-use tool. It is not affiliated with or endorsed by
-> Brotherwise Games or Dragonsteel Entertainment. It contains no book text; you
-> need your own copy of the Stormlight Handbook to play.
+> **This is unofficial fan content, created and shared for non-commercial use.
+> It has not been reviewed by Dragonsteel Entertainment, LLC or Brotherwise
+> Games, LLC.** It contains no book text; you need your own copy of the
+> Stormlight Handbook to play. See [NOTICE.md](NOTICE.md).
 
 ## Planned features
 

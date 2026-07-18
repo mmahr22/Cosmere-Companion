@@ -1,0 +1,16 @@
+{
+  "paths": [
+    {
+      "id": "agent",
+      "name": "Agent",
+      "type": "heroic",
+      "startingSkillId": "INSIGHT",
+      "keyTalentId": "opportunist",
+      "specialties": ["Investigator", "Spy", "Thief"],
+      "summary": "A path for subtle operators who win through observation, misdirection, and perfectly timed strikes. Specialties: Investigator (reading people and solving mysteries), Spy (false identities and infiltration), Thief (risk-taking, dirty fighting, and larceny).",
+      "attributeTips": ["AWARENESS", "INTELLECT", "SPEED"],
+      "skillTips": ["AGILITY", "DECEPTION", "DEDUCTION", "INSIGHT", "LIGHT_WEAPONRY", "THIEVERY"],
+      "page": 74
+    }
+  ]
+}
