@@ -47,6 +47,18 @@
       "attributeTips": ["PRESENCE", "WILLPOWER", "STRENGTH"],
       "skillTips": ["LEADERSHIP", "PERSUASION", "ATHLETICS", "DECEPTION", "INTIMIDATION"],
       "page": 98
+    },
+    {
+      "id": "scholar",
+      "name": "Scholar",
+      "type": "heroic",
+      "startingSkillId": "LORE",
+      "keyTalentId": "erudition",
+      "specialties": ["Artifabrian", "Strategist", "Surgeon"],
+      "summary": "A path for thinkers who out-plan and out-build their problems. Specialties: Artifabrian (crafting fabrials and gemstone devices), Strategist (timing, contingencies, and battlefield analysis), Surgeon (healing, diagnosis, and recovery).",
+      "attributeTips": ["INTELLECT", "PRESENCE", "SPEED", "STRENGTH"],
+      "skillTips": ["CRAFTING", "DEDUCTION", "LORE", "MEDICINE"],
+      "page": 106
     }
   ]
 }
