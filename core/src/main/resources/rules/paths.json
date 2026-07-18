@@ -159,6 +159,17 @@
       "sprenType": "lightspren",
       "surgeIds": ["cohesion", "transportation"],
       "page": 190
+    },
+    {
+      "id": "windrunner",
+      "name": "Windrunner",
+      "type": "radiant",
+      "keyTalentId": "first_ideal_windrunner",
+      "specialties": ["Honorspren Bond"],
+      "summary": "An order bonded to honorspren. Their surges are Adhesion (binding objects together) and Gravitation (Lashings and flight). Their philosophy centers on protection of others.",
+      "sprenType": "honorspren",
+      "surgeIds": ["adhesion", "gravitation"],
+      "page": 198
     }
   ]
 }
