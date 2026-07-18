@@ -148,6 +148,17 @@
       "sprenType": "mistspren",
       "surgeIds": ["illumination", "progression"],
       "page": 180
+    },
+    {
+      "id": "willshaper",
+      "name": "Willshaper",
+      "type": "radiant",
+      "keyTalentId": "first_ideal_willshaper",
+      "specialties": ["Lightspren Bond"],
+      "summary": "An order bonded to lightspren. Their surges are Cohesion (shaping stone) and Transportation (realm-crossing and teleportation). Their philosophy centers on freedom for oneself and others.",
+      "sprenType": "lightspren",
+      "surgeIds": ["cohesion", "transportation"],
+      "page": 190
     }
   ]
 }
