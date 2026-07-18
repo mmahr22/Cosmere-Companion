@@ -392,6 +392,165 @@
           "page": 224
         }
       ]
+    },
+    {
+      "id": "illumination",
+      "name": "Illumination",
+      "attributeId": "PRESENCE",
+      "radiantOrders": ["lightweaver", "truthwatcher"],
+      "summary": "Lightweaving — light-and-sound illusions. Base surge: spend 1+ Investiture to infuse an illusion into thin air within your spren bond range (up to your surge size); simple/static illusions cost 1 Investiture/10 minutes, illusions of characters or complex objects cost 1/round. Or spend 1 Investiture to disguise yourself with no ongoing cost, ending it freely or when Investiture runs out. Simple illusions/disguises auto-convince unless a viewer has reason for suspicion; complex illusions may need an Illumination test vs. the viewer's Cognitive defense. You can control complex illusions within bond range (free action for mindless tasks, action for tasks needing attention); illusions have no senses of their own. A failed test or Complication lets a viewer notice artificiality without destroying the illusion; passersby can also test Deduction/Perception opposed by your Illumination to find its boundaries.",
+      "page": 225,
+      "talents": [
+        {
+          "id": "surge_distracting_illusion",
+          "name": "Distracting Illusion",
+          "activation": "special",
+          "investitureCost": 1,
+          "prerequisiteIdealSpoken": 1,
+          "summary": "Spend 1 Investiture to Lightweave a moving illusory duplicate of yourself or a sensed ally in their space; attacks against that character gain a disadvantage and can't graze until an attack misses them or the scene ends.",
+          "page": 226
+        },
+        {
+          "id": "surge_disorienting_flash",
+          "name": "Disorienting Flash",
+          "activation": "special",
+          "investitureCost": 1,
+          "prerequisiteTalents": ["surge_distracting_illusion"],
+          "summary": "Spend 1 Investiture to project a burst of light/sound in an area within reach (up to your surge size); one Illumination test vs. each character's Cognitive defense in the area, each success making that character Disoriented until the end of their next turn.",
+          "page": 226
+        },
+        {
+          "id": "surge_spiritual_illumination",
+          "name": "Spiritual Illumination",
+          "activation": "special",
+          "investitureCost": 2,
+          "prerequisiteTalents": ["surge_disorienting_flash"],
+          "summary": "Spend 2 Investiture to create a momentary Lightweaving near a sensed ally within bond range; they become Determined and Focused until the end of their next turn.",
+          "page": 227
+        },
+        {
+          "id": "surge_painful_truth",
+          "name": "Painful Truth",
+          "activation": "special",
+          "investitureCost": 2,
+          "prerequisiteTalents": ["surge_spiritual_illumination"],
+          "summary": "Spend 2 Investiture; Illumination test vs. Spiritual defense of a sensed target within bond range. Success: they're Slowed until the end of their next turn; on their next turn they must spend focus equal to your Illumination ranks (as a free action) or immediately Move as far from you as possible.",
+          "page": 227
+        },
+        {
+          "id": "surge_lingering_lightweaving",
+          "name": "Lingering Lightweaving",
+          "activation": "special",
+          "prerequisiteIdealSpoken": 1,
+          "summary": "Instead of infusing an illusion into thin air, infuse its Investiture into a sphere or unencased gem within 5 feet; the illusion moves with that gem, and the infusion expends 1 Investiture per number of rounds equal to your Illumination ranks instead of every round.",
+          "page": 227
+        },
+        {
+          "id": "surge_stormlight_reclamation_illumination",
+          "name": "Stormlight Reclamation",
+          "activation": "free",
+          "prerequisiteTalents": ["surge_distracting_illusion"],
+          "summary": "After your infusions expend Investiture at the start of your turn, end any number of infusions within reach and recover the Investiture remaining in them.",
+          "page": 227
+        },
+        {
+          "id": "surge_multiplicative_lightweaving",
+          "name": "Multiplicative Lightweaving",
+          "activation": "passive",
+          "prerequisiteTalents": ["surge_stormlight_reclamation_illumination"],
+          "summary": "When you Lightweave an illusion, create up to your Illumination ranks in additional illusions at no extra Investiture cost, lasting as long as the original.",
+          "page": 227
+        },
+        {
+          "id": "surge_endless_illusions",
+          "name": "Endless Illusions",
+          "activation": "passive",
+          "prerequisiteTalents": ["surge_multiplicative_lightweaving", "surge_spiritual_illumination"],
+          "prerequisiteTalentsMode": "any",
+          "summary": "While you have at least 1 Investiture, your Illumination infusions within spren bond range expend no Investiture at the start of your turn.",
+          "page": 227
+        }
+      ]
+    },
+    {
+      "id": "progression",
+      "name": "Progression",
+      "attributeId": "AWARENESS",
+      "radiantOrders": ["edgedancer", "truthwatcher"],
+      "summary": "Growth (rapid plant growth) and Regrowth (healing) of living things. Base surge: touch a living target other than yourself within reach (free hand). Plant Growth: spend 1 Investiture to rapidly grow a living plant/seed to a chosen size (up to your surge size and the species' normal limits). Character Regrowth: infuse 1+ Investiture (1/round) into a living character; they recover 1d4 + your Progression modifier in health at the start of each of their turns (die grows with ranks). Regrowth's healing manifests according to the target's own self-image, not the caster's choice.",
+      "page": 228,
+      "talents": [
+        {
+          "id": "surge_explosive_growth",
+          "name": "Explosive Growth",
+          "activation": "special",
+          "investitureCost": 1,
+          "prerequisiteIdealSpoken": 1,
+          "summary": "Spend 1 Investiture to use Growth in an area up to your surge size; one Progression attack compared vs. the Physical defense of each character you choose there, rolling 2d4 impact or keen damage (die grows with ranks). Spend an Opportunity to Immobilize any number of hit targets until the end of your next turn.",
+          "page": 229
+        },
+        {
+          "id": "surge_overgrowth",
+          "name": "Overgrowth",
+          "activation": "special",
+          "prerequisiteTalents": ["surge_explosive_growth"],
+          "summary": "When you infuse Growth into a plant, make a DC 15 Progression test as part of that action; success grows it beyond its species' limits (up to your surge size) and increases its current and total health by 2d4 (die grows with ranks).",
+          "page": 229
+        },
+        {
+          "id": "surge_reliable_progression",
+          "name": "Reliable Progression",
+          "activation": "passive",
+          "prerequisiteSkills": {"PROGRESSION": 2},
+          "prerequisiteTalents": ["surge_overgrowth"],
+          "summary": "When a scaling die from Explosive Growth, Overgrowth, or Swift Regeneration (or a willing character's Regrowth healing roll) rolls below your Progression ranks, you may change it to equal your ranks instead (no action required).",
+          "page": 229
+        },
+        {
+          "id": "surge_injury_regrowth",
+          "name": "Injury Regrowth",
+          "activation": "special",
+          "prerequisiteIdealSpoken": 1,
+          "summary": "Spend 2 Investiture to cause yourself or a willing touched character to instantly recover from a temporary injury of their choice, or spend 3 Investiture for a permanent injury.",
+          "page": 229
+        },
+        {
+          "id": "surge_swift_regeneration",
+          "name": "Swift Regeneration",
+          "activation": "special",
+          "prerequisiteSkills": {"PROGRESSION": 2},
+          "prerequisiteTalents": ["surge_injury_regrowth"],
+          "summary": "When you use Regenerate, recover 1d6 + your Progression modifier in health instead of the normal amount (die grows with ranks). While you have at least 1 Investiture, you and characters infused with your Regrowth add your Progression modifier to injury rolls.",
+          "page": 229
+        },
+        {
+          "id": "surge_extended_regrowth",
+          "name": "Extended Regrowth",
+          "activation": "passive",
+          "prerequisiteTalents": ["surge_swift_regeneration"],
+          "summary": "Regrowth infusions expend 1 Investiture per number of rounds equal to your Progression ranks, instead of every round.",
+          "page": 229
+        },
+        {
+          "id": "surge_from_the_brink",
+          "name": "From the Brink",
+          "activation": "special",
+          "investitureCost": 3,
+          "prerequisiteSkills": {"PROGRESSION": 3},
+          "prerequisiteTalents": ["surge_extended_regrowth"],
+          "summary": "Spend 3 Investiture and touch the body of a willing character who died within the last minute to restore them to life.",
+          "page": 229
+        },
+        {
+          "id": "surge_font_of_life",
+          "name": "Font of Life",
+          "activation": "passive",
+          "prerequisiteTalents": ["surge_extended_regrowth", "surge_reliable_progression"],
+          "prerequisiteTalentsMode": "any",
+          "summary": "Using Progression and its talents costs 1 less action.",
+          "page": 229
+        }
+      ]
     }
   ]
 }
