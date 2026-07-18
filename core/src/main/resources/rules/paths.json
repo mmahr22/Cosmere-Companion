@@ -115,6 +115,17 @@
       "sprenType": "cryptic",
       "surgeIds": ["illumination", "transformation"],
       "page": 156
+    },
+    {
+      "id": "skybreaker",
+      "name": "Skybreaker",
+      "type": "radiant",
+      "keyTalentId": "first_ideal_skybreaker",
+      "specialties": ["Highspren Bond"],
+      "summary": "An order bonded to highspren, devoted to justice and the rule of law. Their surges are Division (decay and destruction) and Gravitation (Lashings and flight). Their philosophy centers on justice and commitment to a chosen code.",
+      "sprenType": "highspren",
+      "surgeIds": ["division", "gravitation"],
+      "page": 164
     }
   ]
 }
