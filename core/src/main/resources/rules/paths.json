@@ -137,6 +137,17 @@
       "sprenType": "peakspren",
       "surgeIds": ["cohesion", "tension"],
       "page": 172
+    },
+    {
+      "id": "truthwatcher",
+      "name": "Truthwatcher",
+      "type": "radiant",
+      "keyTalentId": "first_ideal_truthwatcher",
+      "specialties": ["Mistspren Bond"],
+      "summary": "An order bonded to mistspren. Their surges are Illumination (illusions) and Progression (growth and regrowth healing). Their philosophy centers on seeking and revealing truth.",
+      "sprenType": "mistspren",
+      "surgeIds": ["illumination", "progression"],
+      "page": 180
     }
   ]
 }
