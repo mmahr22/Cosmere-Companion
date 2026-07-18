@@ -714,6 +714,85 @@
           "page": 235
         }
       ]
+    },
+    {
+      "id": "transportation",
+      "name": "Transportation",
+      "attributeId": "INTELLECT",
+      "radiantOrders": ["elsecaller", "willshaper"],
+      "summary": "Crossing realms — initially just peering into the Cognitive Realm (Shadesmar) at your current location. Base surge: spend 1+ Investiture; for each Investiture, use one effect within your spren bond range — Learn Emotions and Motives (advantage to influence someone, or learn their motive without an Insight test), Locate Characters (guess a nearby person's Physical-realm location from their Shadesmar flame), or Sense Investiture (spot Invested/infused people and objects — Fused, other Radiants, Shardblades, fabrials). The GM may require a Transportation test to spot harder things.",
+      "page": 236,
+      "talents": [
+        {
+          "id": "surge_cognitive_farsight",
+          "name": "Cognitive Farsight",
+          "activation": "passive",
+          "prerequisiteIdealSpoken": 1,
+          "summary": "Peering into the Cognitive Realm reaches a distance of 3 × your spren bond range. While you have at least 1 Investiture, you always know which direction is north and which way leads to the nearest settlement.",
+          "page": 237
+        },
+        {
+          "id": "surge_cognitive_vision",
+          "name": "Cognitive Vision",
+          "activation": "passive",
+          "prerequisiteTalents": ["surge_cognitive_farsight"],
+          "summary": "Adds two more things you can spot via Transportation: Learn Intent (Transportation test vs. a sensed enemy's Cognitive defense — success reveals their likely intentions to share with allies, giving that enemy a disadvantage on their next test against you or an ally) and Locate Objects (glimpse nearby objects/environment info via soul beads in Shadesmar).",
+          "page": 237
+        },
+        {
+          "id": "surge_realmic_evasion",
+          "name": "Realmic Evasion",
+          "activation": "reaction",
+          "investitureCost": 1,
+          "prerequisiteIdealSpoken": 2,
+          "summary": "Before you're hit by an attack, spend 1 Investiture to test Transportation against a DC equal to the attack's test result (choose to use this reaction after learning the DC). Failure: the attack grazes instead of hitting. Success: it misses instead and can't graze.",
+          "page": 238
+        },
+        {
+          "id": "surge_realmic_step",
+          "name": "Realmic Step",
+          "activation": "special",
+          "investitureCost": 2,
+          "prerequisiteTalents": ["surge_realmic_evasion"],
+          "summary": "DC 15 Transportation test; on success, spend 2 Investiture to slip through Shadesmar (with your worn/carried gear) and reappear in an unoccupied space you can sense within spren bond range, without triggering Reactive Strikes. Only costs 1 Investiture if you're on or above a large body of water.",
+          "page": 238
+        },
+        {
+          "id": "surge_elsecalling",
+          "name": "Elsecalling",
+          "activation": "special",
+          "prerequisiteTalents": ["surge_realmic_step"],
+          "prerequisiteIdealSpoken": 3,
+          "summary": "Transport yourself (with worn/carried gear) between the Physical and Cognitive Realms at the same location, without triggering Reactive Strikes. Physical to Cognitive: spend 1 Investiture, no test needed. Cognitive to Physical: DC 20 Transportation test; on success spend 2 Investiture to cross; on failure nothing is spent and you may retry on a later turn.",
+          "page": 238
+        },
+        {
+          "id": "surge_realmwalker",
+          "name": "Realmwalker",
+          "activation": "passive",
+          "prerequisiteTalents": ["surge_elsecalling"],
+          "summary": "You automatically succeed on any Transportation test made to use a Transportation talent.",
+          "page": 238
+        },
+        {
+          "id": "surge_shared_transportation",
+          "name": "Shared Transportation",
+          "activation": "passive",
+          "prerequisiteSkills": {"TRANSPORTATION": 4},
+          "prerequisiteTalents": ["surge_realmic_step"],
+          "summary": "When you transport yourself with a Transportation talent, spend 1+ additional Investiture to bring that many additional characters with you.",
+          "page": 236
+        },
+        {
+          "id": "surge_elsegate",
+          "name": "Elsegate",
+          "activation": "special",
+          "prerequisiteTalents": ["surge_shared_transportation"],
+          "prerequisiteIdealSpoken": 4,
+          "summary": "After a long rest, instantly transport yourself and up to ten willing characters (plus their worn/carried gear) to an Oathgate platform or permanent perpendicularity you've visited before. Requires infused spheres worth twice as many marks as the number of characters transported; all those spheres become dun on arrival. The GM may allow other highly-Invested visited destinations.",
+          "page": 238
+        }
+      ]
     }
   ]
 }
