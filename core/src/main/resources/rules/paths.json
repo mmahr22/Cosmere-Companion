@@ -93,6 +93,17 @@
       "sprenType": "cultivationspren",
       "surgeIds": ["abrasion", "progression"],
       "page": 140
+    },
+    {
+      "id": "elsecaller",
+      "name": "Elsecaller",
+      "type": "radiant",
+      "keyTalentId": "first_ideal_elsecaller",
+      "specialties": ["Inkspren Bond"],
+      "summary": "An order bonded to inkspren. Their surges are Transformation (Soulcasting matter between Essences) and Transportation (realm-crossing and teleportation). Their philosophy focuses on self-improvement and reaching one's potential.",
+      "sprenType": "inkspren",
+      "surgeIds": ["transformation", "transportation"],
+      "page": 148
     }
   ]
 }
