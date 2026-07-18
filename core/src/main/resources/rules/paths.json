@@ -23,6 +23,18 @@
       "attributeTips": ["PRESENCE", "WILLPOWER"],
       "skillTips": ["DISCIPLINE", "INSIGHT", "LEADERSHIP", "LORE", "PERSUASION"],
       "page": 82
+    },
+    {
+      "id": "hunter",
+      "name": "Hunter",
+      "type": "heroic",
+      "startingSkillId": "PERCEPTION",
+      "keyTalentId": "seek_quarry",
+      "specialties": ["Archer", "Assassin", "Tracker"],
+      "summary": "A path for relentless pursuers who mark a quarry and take it down with ranged precision, lethal stealth, or traps and animal partners. Specialties: Archer (ranged combat and mobility), Assassin (ambushes and finishing strikes), Tracker (traps, foraging, and an animal companion).",
+      "attributeTips": ["SPEED", "AWARENESS", "STRENGTH"],
+      "skillTips": ["AGILITY", "PERCEPTION", "STEALTH", "SURVIVAL", "LIGHT_WEAPONRY", "HEAVY_WEAPONRY"],
+      "page": 90
     }
   ]
 }
