@@ -1,6 +1,7 @@
 package com.cosmere.companion.app.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,6 +17,7 @@ import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -38,6 +40,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.cosmere.companion.core.data.RulesRepository
 import com.cosmere.companion.core.model.Attribute
 import com.cosmere.companion.core.model.CharacterMath
@@ -47,17 +51,21 @@ import com.cosmere.companion.core.model.PlayerCharacter
 import com.cosmere.companion.core.model.Skill
 
 @Composable
-fun CharactersScreen() {
-    var character by remember { mutableStateOf<PlayerCharacter?>(null) }
-    val existing = character
+fun CharactersScreen(viewModel: CharacterViewModel = viewModel()) {
+    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+    val existing by viewModel.character.collectAsStateWithLifecycle()
 
-    if (existing == null) {
-        CharacterCreationForm(onCreate = { character = it })
+    if (isLoading) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+    } else if (existing == null) {
+        CharacterCreationForm(onCreate = viewModel::save)
     } else {
         CharacterSheet(
-            character = existing,
-            onUpdate = { character = it },
-            onReset = { character = null },
+            character = existing!!,
+            onUpdate = viewModel::save,
+            onReset = viewModel::reset,
         )
     }
 }
