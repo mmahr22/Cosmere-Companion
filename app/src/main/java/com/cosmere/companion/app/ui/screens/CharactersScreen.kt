@@ -32,9 +32,10 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,7 +43,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.cosmere.companion.core.data.RulesRepository
@@ -55,6 +55,9 @@ import com.cosmere.companion.core.model.Item
 import com.cosmere.companion.core.model.ItemType
 import com.cosmere.companion.core.model.PlayerCharacter
 import com.cosmere.companion.core.model.Skill
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 private const val MAX_CULTURES = 2
 
@@ -78,36 +81,59 @@ fun CharactersScreen(viewModel: CharacterViewModel = viewModel()) {
     }
 }
 
+/**
+ * In-progress character creation state. Held as a single immutable snapshot
+ * (rather than several [mutableStateOf]/[androidx.compose.runtime.mutableStateMapOf]
+ * vars) so the whole form can ride one [rememberSaveable] call: switching
+ * bottom-nav tabs mid-creation and coming back used to reset every field,
+ * since plain `remember` state doesn't survive a composable leaving
+ * composition the way `rememberSaveable` does.
+ */
+@Serializable
+private data class CharacterDraft(
+    val name: String = "",
+    val ancestryId: String? = null,
+    val cultureIds: List<String> = emptyList(),
+    val attributes: Map<String, Int> = Attribute.entries.associate { it.name to 0 },
+    val heroicPathId: String? = null,
+    val specialty: String? = null,
+    val isRadiant: Boolean = false,
+    val radiantPathId: String? = null,
+    val skillRanks: Map<String, Int> = emptyMap(),
+) {
+    fun attributeValue(attribute: Attribute): Int = attributes[attribute.name] ?: 0
+
+    fun skillRank(skillId: String): Int = skillRanks[skillId] ?: 0
+
+    fun withSkillRank(skillId: String, rank: Int): CharacterDraft =
+        if (rank <= 0) copy(skillRanks = skillRanks - skillId) else copy(skillRanks = skillRanks + (skillId to rank))
+}
+
+private val CharacterDraftSaver = Saver<CharacterDraft, String>(
+    save = { Json.encodeToString(it) },
+    restore = { Json.decodeFromString(it) },
+)
+
 @Composable
 private fun CharacterCreationForm(onCreate: (PlayerCharacter) -> Unit) {
     val heroicPaths = remember { RulesRepository.paths.filter { it.type == "heroic" } }
     val radiantPaths = remember { RulesRepository.paths.filter { it.type == "radiant" } }
 
-    var name by remember { mutableStateOf("") }
-    var ancestryId by remember { mutableStateOf<String?>(null) }
-    val cultureIds = remember { mutableStateListOf<String>() }
-    val attributes = remember {
-        mutableStateMapOf<Attribute, Int>().apply { Attribute.entries.forEach { put(it, 0) } }
-    }
-    var heroicPathId by remember { mutableStateOf<String?>(null) }
-    var specialty by remember { mutableStateOf<String?>(null) }
-    var isRadiant by remember { mutableStateOf(false) }
-    var radiantPathId by remember { mutableStateOf<String?>(null) }
-    val skillRanks = remember { mutableStateMapOf<String, Int>() }
+    var draft by rememberSaveable(stateSaver = CharacterDraftSaver) { mutableStateOf(CharacterDraft()) }
 
-    val heroicPath = heroicPaths.firstOrNull { it.id == heroicPathId }
-    val radiantPath = radiantPaths.firstOrNull { it.id == radiantPathId }
+    val heroicPath = heroicPaths.firstOrNull { it.id == draft.heroicPathId }
+    val radiantPath = radiantPaths.firstOrNull { it.id == draft.radiantPathId }
     val creationSkillCap = CharacterMath.maxSkillRank(1)
 
-    val attributePointsRemaining = CharacterMath.CREATION_ATTRIBUTE_POINTS - attributes.values.sum()
+    val attributePointsRemaining = CharacterMath.CREATION_ATTRIBUTE_POINTS - draft.attributes.values.sum()
     val skillPointsRemaining = CharacterMath.CREATION_FREE_SKILL_RANKS - Skill.entries.sumOf { skill ->
         val autoMinimum = if (skill.name == heroicPath?.startingSkillId) 1 else 0
-        ((skillRanks[skill.name] ?: 0) - autoMinimum).coerceAtLeast(0)
+        (draft.skillRank(skill.name) - autoMinimum).coerceAtLeast(0)
     }
 
-    val canCreate = name.isNotBlank() &&
-        ancestryId != null &&
-        heroicPathId != null &&
+    val canCreate = draft.name.isNotBlank() &&
+        draft.ancestryId != null &&
+        draft.heroicPathId != null &&
         attributePointsRemaining == 0 &&
         skillPointsRemaining == 0
 
@@ -121,8 +147,8 @@ private fun CharacterCreationForm(onCreate: (PlayerCharacter) -> Unit) {
         Text("Create Your Character", style = MaterialTheme.typography.headlineSmall)
 
         OutlinedTextField(
-            value = name,
-            onValueChange = { name = it },
+            value = draft.name,
+            onValueChange = { draft = draft.copy(name = it) },
             label = { Text("Character name") },
             modifier = Modifier.fillMaxWidth(),
         )
@@ -132,12 +158,12 @@ private fun CharacterCreationForm(onCreate: (PlayerCharacter) -> Unit) {
         RulesRepository.ancestries.forEach { ancestry ->
             SelectableAncestryRow(
                 ancestry = ancestry,
-                selected = ancestryId == ancestry.id,
+                selected = draft.ancestryId == ancestry.id,
                 onClick = {
-                    ancestryId = ancestry.id
-                    if (ancestry.id != "singer") {
-                        cultureIds.remove("listener")
-                    }
+                    draft = draft.copy(
+                        ancestryId = ancestry.id,
+                        cultureIds = if (ancestry.id != "singer") draft.cultureIds - "listener" else draft.cultureIds,
+                    )
                 },
             )
         }
@@ -153,16 +179,17 @@ private fun CharacterCreationForm(onCreate: (PlayerCharacter) -> Unit) {
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             RulesRepository.cultures
-                .filter { !it.singerOnly || ancestryId == "singer" }
+                .filter { !it.singerOnly || draft.ancestryId == "singer" }
                 .forEach { cultureOption ->
-                    val selected = cultureOption.id in cultureIds
+                    val selected = cultureOption.id in draft.cultureIds
                     FilterChip(
                         selected = selected,
                         onClick = {
-                            if (selected) {
-                                cultureIds.remove(cultureOption.id)
-                            } else if (cultureIds.size < MAX_CULTURES) {
-                                cultureIds.add(cultureOption.id)
+                            draft = when {
+                                selected -> draft.copy(cultureIds = draft.cultureIds - cultureOption.id)
+                                draft.cultureIds.size < MAX_CULTURES ->
+                                    draft.copy(cultureIds = draft.cultureIds + cultureOption.id)
+                                else -> draft
                             }
                         },
                         label = { Text(cultureOption.name) },
@@ -177,7 +204,7 @@ private fun CharacterCreationForm(onCreate: (PlayerCharacter) -> Unit) {
             style = MaterialTheme.typography.titleMedium,
         )
         Attribute.entries.forEach { attribute ->
-            val value = attributes[attribute] ?: 0
+            val value = draft.attributeValue(attribute)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -186,14 +213,18 @@ private fun CharacterCreationForm(onCreate: (PlayerCharacter) -> Unit) {
                 Text("${attribute.displayName} (${attribute.abbreviation})")
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     IconButton(
-                        onClick = { if (value > 0) attributes[attribute] = value - 1 },
+                        onClick = {
+                            if (value > 0) {
+                                draft = draft.copy(attributes = draft.attributes + (attribute.name to value - 1))
+                            }
+                        },
                         enabled = value > 0,
                     ) { Icon(Icons.Filled.Remove, contentDescription = "Decrease ${attribute.displayName}") }
                     Text("$value", modifier = Modifier.width(24.dp), textAlign = TextAlign.Center)
                     IconButton(
                         onClick = {
                             if (value < CharacterMath.CREATION_ATTRIBUTE_MAX && attributePointsRemaining > 0) {
-                                attributes[attribute] = value + 1
+                                draft = draft.copy(attributes = draft.attributes + (attribute.name to value + 1))
                             }
                         },
                         enabled = value < CharacterMath.CREATION_ATTRIBUTE_MAX && attributePointsRemaining > 0,
@@ -208,16 +239,17 @@ private fun CharacterCreationForm(onCreate: (PlayerCharacter) -> Unit) {
         heroicPaths.forEach { path ->
             SelectablePathRow(
                 path = path,
-                selected = heroicPathId == path.id,
+                selected = draft.heroicPathId == path.id,
                 onClick = {
+                    var skillRanks = draft.skillRanks
                     heroicPath?.startingSkillId?.let { old ->
-                        if ((skillRanks[old] ?: 0) <= 1) skillRanks.remove(old) else skillRanks[old] = (skillRanks[old] ?: 1) - 1
+                        val current = skillRanks[old] ?: 0
+                        skillRanks = if (current <= 1) skillRanks - old else skillRanks + (old to current - 1)
                     }
-                    heroicPathId = path.id
-                    specialty = null
                     path.startingSkillId?.let { skillId ->
-                        skillRanks[skillId] = maxOf(skillRanks[skillId] ?: 0, 1)
+                        skillRanks = skillRanks + (skillId to maxOf(skillRanks[skillId] ?: 0, 1))
                     }
+                    draft = draft.copy(heroicPathId = path.id, specialty = null, skillRanks = skillRanks)
                 },
             )
         }
@@ -226,8 +258,8 @@ private fun CharacterCreationForm(onCreate: (PlayerCharacter) -> Unit) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 heroicPath.specialties.forEach { spec ->
                     FilterChip(
-                        selected = specialty == spec,
-                        onClick = { specialty = spec },
+                        selected = draft.specialty == spec,
+                        onClick = { draft = draft.copy(specialty = spec) },
                         label = { Text(spec) },
                     )
                 }
@@ -244,7 +276,7 @@ private fun CharacterCreationForm(onCreate: (PlayerCharacter) -> Unit) {
             Text(attribute.displayName, style = MaterialTheme.typography.labelLarge)
             Skill.forAttribute(attribute).forEach { skill ->
                 val autoMinimum = if (skill.name == heroicPath?.startingSkillId) 1 else 0
-                val rank = skillRanks[skill.name] ?: 0
+                val rank = draft.skillRank(skill.name)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
@@ -253,14 +285,16 @@ private fun CharacterCreationForm(onCreate: (PlayerCharacter) -> Unit) {
                     Text(skill.displayName + if (autoMinimum > 0) " (path)" else "")
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         IconButton(
-                            onClick = { if (rank > autoMinimum) skillRanks[skill.name] = rank - 1 },
+                            onClick = {
+                                if (rank > autoMinimum) draft = draft.withSkillRank(skill.name, rank - 1)
+                            },
                             enabled = rank > autoMinimum,
                         ) { Icon(Icons.Filled.Remove, contentDescription = "Decrease ${skill.displayName}") }
                         Text("$rank", modifier = Modifier.width(24.dp), textAlign = TextAlign.Center)
                         IconButton(
                             onClick = {
                                 if (rank < creationSkillCap && skillPointsRemaining > 0) {
-                                    skillRanks[skill.name] = rank + 1
+                                    draft = draft.withSkillRank(skill.name, rank + 1)
                                 }
                             },
                             enabled = rank < creationSkillCap && skillPointsRemaining > 0,
@@ -274,33 +308,38 @@ private fun CharacterCreationForm(onCreate: (PlayerCharacter) -> Unit) {
 
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Switch(
-                checked = isRadiant,
+                checked = draft.isRadiant,
                 onCheckedChange = { checked ->
-                    isRadiant = checked
-                    if (!checked) {
+                    draft = if (checked) {
+                        draft.copy(isRadiant = true)
+                    } else {
+                        var skillRanks = draft.skillRanks
                         radiantPath?.surgeIds?.forEach { surgeId ->
-                            if ((skillRanks[surgeId] ?: 0) <= 1) skillRanks.remove(surgeId) else skillRanks[surgeId] = (skillRanks[surgeId] ?: 1) - 1
+                            val current = skillRanks[surgeId] ?: 0
+                            skillRanks = if (current <= 1) skillRanks - surgeId else skillRanks + (surgeId to current - 1)
                         }
-                        radiantPathId = null
+                        draft.copy(isRadiant = false, radiantPathId = null, skillRanks = skillRanks)
                     }
                 },
             )
             Text("Already bonded to a spren (Radiant)")
         }
-        if (isRadiant) {
+        if (draft.isRadiant) {
             Text("Radiant Order", style = MaterialTheme.typography.titleMedium)
             radiantPaths.forEach { path ->
                 SelectablePathRow(
                     path = path,
-                    selected = radiantPathId == path.id,
+                    selected = draft.radiantPathId == path.id,
                     onClick = {
+                        var skillRanks = draft.skillRanks
                         radiantPath?.surgeIds?.forEach { old ->
-                            if ((skillRanks[old] ?: 0) <= 1) skillRanks.remove(old) else skillRanks[old] = (skillRanks[old] ?: 1) - 1
+                            val current = skillRanks[old] ?: 0
+                            skillRanks = if (current <= 1) skillRanks - old else skillRanks + (old to current - 1)
                         }
-                        radiantPathId = path.id
                         path.surgeIds.forEach { surgeId ->
-                            skillRanks[surgeId] = maxOf(skillRanks[surgeId] ?: 0, 1)
+                            skillRanks = skillRanks + (surgeId to maxOf(skillRanks[surgeId] ?: 0, 1))
                         }
+                        draft = draft.copy(radiantPathId = path.id, skillRanks = skillRanks)
                     },
                 )
             }
@@ -310,14 +349,14 @@ private fun CharacterCreationForm(onCreate: (PlayerCharacter) -> Unit) {
             onClick = {
                 onCreate(
                     PlayerCharacter(
-                        name = name.trim(),
-                        ancestryId = ancestryId,
-                        cultureIds = cultureIds.toList(),
-                        attributes = attributes.toMap(),
-                        heroicPathId = heroicPathId!!,
-                        specialty = specialty,
-                        radiantPathId = radiantPathId,
-                        skillRanks = skillRanks.toMap(),
+                        name = draft.name.trim(),
+                        ancestryId = draft.ancestryId,
+                        cultureIds = draft.cultureIds,
+                        attributes = Attribute.entries.associateWith { draft.attributeValue(it) },
+                        heroicPathId = draft.heroicPathId!!,
+                        specialty = draft.specialty,
+                        radiantPathId = draft.radiantPathId,
+                        skillRanks = draft.skillRanks,
                     ),
                 )
             },
