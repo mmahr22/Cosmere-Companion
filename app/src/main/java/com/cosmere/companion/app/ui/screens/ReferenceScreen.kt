@@ -40,6 +40,8 @@ import com.cosmere.companion.core.model.Condition
 import com.cosmere.companion.core.model.Culture
 import com.cosmere.companion.core.model.Attribute
 import com.cosmere.companion.core.model.GamePath
+import com.cosmere.companion.core.model.Item
+import com.cosmere.companion.core.model.ItemType
 import com.cosmere.companion.core.model.SingerForm
 import com.cosmere.companion.core.model.SurgeEntry
 import com.cosmere.companion.core.model.SurgeTalent
@@ -55,6 +57,7 @@ private enum class ReferenceCategory(val label: String) {
     SINGER_FORMS("Forms"),
     SURGES("Surges"),
     CONDITIONS("Conditions"),
+    ITEMS("Items"),
 }
 
 /**
@@ -134,6 +137,20 @@ private sealed interface ReferenceEntry {
         override val category: ReferenceCategory = ReferenceCategory.SINGER_FORMS
         override val page: Int? = form.page
     }
+
+    data class ItemEntry(val item: Item) : ReferenceEntry {
+        override val key: String = "item:${item.id}"
+        override val name: String = item.name
+        override val subtitle: String = when (item.type) {
+            ItemType.WEAPON -> "Weapon • ${item.category}"
+            ItemType.ARMOR -> "Armor"
+            ItemType.FABRIAL -> "Fabrial"
+            ItemType.EQUIPMENT -> "Equipment"
+        }
+        override val summary: String = item.summary
+        override val category: ReferenceCategory = ReferenceCategory.ITEMS
+        override val page: Int? = item.page
+    }
 }
 
 private fun buildReferenceEntries(): List<ReferenceEntry> {
@@ -147,7 +164,8 @@ private fun buildReferenceEntries(): List<ReferenceEntry> {
     val ancestries = RulesRepository.ancestries.map { ReferenceEntry.AncestryItem(it) }
     val cultures = RulesRepository.cultures.map { ReferenceEntry.CultureItem(it) }
     val singerForms = RulesRepository.singerForms.map { ReferenceEntry.SingerFormItem(it) }
-    return ancestries + cultures + paths + talents + singerForms + surges + conditions
+    val items = RulesRepository.items.map { ReferenceEntry.ItemEntry(it) }
+    return ancestries + cultures + paths + talents + singerForms + surges + conditions + items
 }
 
 private fun formatIdentifier(raw: String): String =
@@ -309,6 +327,7 @@ private fun ReferenceEntryDetails(entry: ReferenceEntry) {
         is ReferenceEntry.AncestryItem -> AncestryDetails(entry.ancestry)
         is ReferenceEntry.CultureItem -> CultureDetails(entry.culture)
         is ReferenceEntry.SingerFormItem -> SingerFormDetails(entry.form)
+        is ReferenceEntry.ItemEntry -> ItemDetails(entry.item)
     }
 }
 
@@ -350,6 +369,30 @@ private fun SingerFormDetails(form: SingerForm) {
         } else {
             val talentName = RulesRepository.talents.firstOrNull { it.id == grantedBy }?.name ?: grantedBy
             Text("Granted by: $talentName")
+        }
+    }
+}
+
+@Composable
+private fun ItemDetails(item: Item) {
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        item.skill?.let { Text("Skill: $it") }
+        item.damage?.let { Text("Damage: $it") }
+        item.range?.let { Text("Range: $it") }
+        item.deflectValue?.let { Text("Deflect Value: $it") }
+        item.charges?.let { Text("Charges: $it") }
+        if (item.traits.isNotEmpty()) {
+            Text("Traits: ${item.traits.joinToString()}")
+        }
+        if (item.expertTraits.isNotEmpty()) {
+            Text("Expert Traits: ${item.expertTraits.joinToString()}")
+        }
+        val weightPrice = listOfNotNull(
+            item.weight?.let { "Weight: $it" },
+            item.price?.let { "Price: $it" },
+        )
+        if (weightPrice.isNotEmpty()) {
+            Text(weightPrice.joinToString(" • "))
         }
     }
 }

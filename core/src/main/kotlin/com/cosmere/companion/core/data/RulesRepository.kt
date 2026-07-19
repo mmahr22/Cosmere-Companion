@@ -7,6 +7,8 @@ import com.cosmere.companion.core.model.ConditionsFile
 import com.cosmere.companion.core.model.Culture
 import com.cosmere.companion.core.model.CulturesFile
 import com.cosmere.companion.core.model.GamePath
+import com.cosmere.companion.core.model.Item
+import com.cosmere.companion.core.model.ItemsFile
 import com.cosmere.companion.core.model.PathsFile
 import com.cosmere.companion.core.model.SingerForm
 import com.cosmere.companion.core.model.SingerFormsFile
@@ -54,6 +56,10 @@ object RulesRepository {
         json.decodeFromString<SingerFormsFile>(readResource("/rules/singer_forms.json")).forms
     }
 
+    val items: List<Item> by lazy {
+        json.decodeFromString<ItemsFile>(readResource("/rules/items.json")).items
+    }
+
     private val surgesFile: SurgesFile by lazy {
         json.decodeFromString<SurgesFile>(readResource("/rules/surges.json"))
     }
@@ -78,6 +84,8 @@ object RulesRepository {
     fun cultureById(id: String): Culture? = cultures.firstOrNull { it.id == id }
 
     fun singerFormById(id: String): SingerForm? = singerForms.firstOrNull { it.id == id }
+
+    fun itemById(id: String): Item? = items.firstOrNull { it.id == id }
 
     private fun readResource(path: String): String =
         requireNotNull(RulesRepository::class.java.getResource(path)) {
