@@ -15,6 +15,12 @@ class MapConverters {
 
     @TypeConverter
     fun toIntMap(value: String): Map<String, Int> = Json.decodeFromString(value)
+
+    @TypeConverter
+    fun fromStringList(list: List<String>): String = Json.encodeToString(list)
+
+    @TypeConverter
+    fun toStringList(value: String): List<String> = Json.decodeFromString(value)
 }
 
 /**
@@ -27,8 +33,8 @@ class MapConverters {
 data class PlayerCharacterEntity(
     @PrimaryKey val id: Int = CURRENT_CHARACTER_ID,
     val name: String,
-    val ancestry: String,
-    val culture: String,
+    val ancestryId: String?,
+    val cultureIds: List<String>,
     val level: Int,
     val attributes: Map<String, Int>,
     val heroicPathId: String,
@@ -47,8 +53,8 @@ data class PlayerCharacterEntity(
 
 fun PlayerCharacter.toEntity(): PlayerCharacterEntity = PlayerCharacterEntity(
     name = name,
-    ancestry = ancestry,
-    culture = culture,
+    ancestryId = ancestryId,
+    cultureIds = cultureIds,
     level = level,
     attributes = attributes.mapKeys { it.key.name },
     heroicPathId = heroicPathId,
@@ -63,8 +69,8 @@ fun PlayerCharacter.toEntity(): PlayerCharacterEntity = PlayerCharacterEntity(
 
 fun PlayerCharacterEntity.toDomain(): PlayerCharacter = PlayerCharacter(
     name = name,
-    ancestry = ancestry,
-    culture = culture,
+    ancestryId = ancestryId,
+    cultureIds = cultureIds,
     level = level,
     attributes = attributes.mapNotNull { (key, value) ->
         Attribute.entries.find { it.name == key }?.let { attribute -> attribute to value }

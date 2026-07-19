@@ -36,7 +36,7 @@ class PathDataTest {
             assertEquals(path.keyTalentId, talents.first { it.isKey }.id)
             talents.filterNot { it.isKey }.forEach { talent ->
                 assertTrue(
-                    talent.specialty in path.specialties,
+                    talent.specialty == null || talent.specialty in path.specialties,
                     "${talent.id} has unknown specialty ${talent.specialty}",
                 )
             }

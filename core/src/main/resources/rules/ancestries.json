@@ -1,0 +1,23 @@
+{
+  "ancestries": [
+    {
+      "id": "human",
+      "name": "Human",
+      "size": "Medium",
+      "summary": "The majority population across most of Roshar's nations. Humans have no innate physical talent tree of their own; their versatility comes from freely choosing extra talents from any heroic path throughout their career.",
+      "bonusTalentLevels": [1, 6, 11, 16, 21],
+      "bonusTalentSource": "Any heroic path talent tree (must meet that talent's normal prerequisites).",
+      "page": 30
+    },
+    {
+      "id": "singer",
+      "name": "Singer",
+      "size": "Medium",
+      "summary": "Roshar's indigenous population. Singers bond spren during highstorms to Change Form, temporarily reshaping their attributes and abilities; their intellectual and emotional range matches humans', but their physical traits shift with whichever form they're wearing. Singer skin is marbled black, white, or red, with hair in orange, red, or black tones, and protective carapace that grows more substantial in specialized forms.",
+      "bonusTalentLevels": [6, 11, 16, 21],
+      "bonusTalentSource": "The Singer talent tree or any heroic path talent tree.",
+      "keyTalentId": "change_form_singer_key",
+      "page": 30
+    }
+  ]
+}

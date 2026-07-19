@@ -1,0 +1,109 @@
+{
+  "cultures": [
+    {
+      "id": "alethi",
+      "name": "Alethi",
+      "summary": "Alethkar is ruled by a monarch and ten highprinces and is a warrior culture built around conquest. Vorinism is practiced by proxy through ardents, and rigid gender roles split scholarly pursuits (women) from warfare and physical labor (men), though ardents sit outside that binary. Social caste is tied to eye color: light-eyed nobility hold privilege over dark-eyed citizens, and singers and some dark-eyed humans are enslaved. Most Alethi are tall with tan skin and dark hair.",
+      "names": ["Adelar", "Arin", "Dannic", "Elhamir", "Ersha", "Hilar", "Janar", "Kalith", "Lanerin", "Marith", "Nar", "Ravir", "Rilin", "Selith", "Taren", "Tel", "Valerin", "Varda", "Yaladir", "Zalith"],
+      "expertiseSummary": "Know Alethkar's princedoms and highprinces, including one princedom you've lived in well enough to fake its dialect and find local vendors and landmarks. Choose your fluency in spoken Alethi and in reading/writing glyphs (and women's script, if applicable). Familiar with the basics of Vorinism, the Almighty, and the Heralds.",
+      "page": 38
+    },
+    {
+      "id": "azish",
+      "name": "Azish",
+      "summary": "The Azish Empire is a sprawling bureaucracy led by the Prime Aqasix and a class of elite scribes called viziers. Debate is encouraged, but deviating from proper procedure draws scorn, and the empire's legislature is famously expansive. Most Azish have very dark brown skin, black hair, and are shorter than eastern Rosharans; large hats and colorful wraps or robes mark status.",
+      "names": ["Adebazik", "Arnok", "Baxtol", "Chivik", "Dalwa", "Etosha", "Falkir", "Ganxir", "Hauzir", "Jirana", "Koxi", "Kunde", "Maliq", "Nineka", "Raukir", "Sigwir", "Tama", "Tigzir", "Uju", "Wolu", "Yemzil"],
+      "expertiseSummary": "Know the Azish bureaucracy, the Bronze Palace, the Prime Aqasix, the viziers, and basic facts about each member state. Choose your fluency in Azish sign language plus spoken and written Azish. Know how to navigate civic bureaucracy (constables, complaints, the vizier exam). Familiar with the Kadasixes and scions.",
+      "page": 39
+    },
+    {
+      "id": "herdazian",
+      "name": "Herdazian",
+      "summary": "Herdaz is a verdant monarchy famous for its hog ranches; nearly half its people live abroad, and expatriate Herdazians greet each other warmly as \"cousin.\" Vorinism is popular but less rigidly enforced than in Alethkar. Ancient singer ancestry left most Herdazians with crystalline fingernails usable as flint and stronger resistance to native poisons; skin tends medium brown with brown hair.",
+      "names": ["Aloro", "Dunal", "Duro", "Erona", "Hanol", "Jonio", "Kunor", "Lurio", "Luron", "Palor", "Pinola", "Polino", "Relio", "Sulio", "Torona", "Yorino"],
+      "expertiseSummary": "Know the king and prominent ranching families, and how to navigate between ranches while avoiding coastal greatshells. Choose your fluency in spoken and written Herdazian and in glyphs. Know basic ranching tools, including sparkflickers. Familiar with the basics of Herdazian Vorinism.",
+      "page": 39
+    },
+    {
+      "id": "iriali",
+      "name": "Iriali",
+      "summary": "Iri is ruled by three monarchs; the Iriali trace their descent to offworlders and follow the religion of the One, believing they must gather diverse experiences before merging into a single consciousness at the end of the Long Trail. Ethnic Iriali have golden skin and hair, often accented with ornamental body paint, and favor flowing pastel fashion.",
+      "names": ["Byrle", "Drin", "Ilori", "Imral", "Jyste", "Lalys", "Lyre", "Lysna", "Myi", "Rallin", "Rellis", "Ryli", "Syderim", "Palir", "Ynne"],
+      "expertiseSummary": "Know the Iriali Triumvirate (two kings and a queen) and, for a city or rural area you've lived in, its vendors, organizations, and landmarks. Choose your fluency in spoken and written Iri. Familiar with the basics of the One and the Long Trail, plus basic travel and supply strategy.",
+      "page": 40
+    },
+    {
+      "id": "kharbranthian",
+      "name": "Kharbranthian",
+      "summary": "Kharbranth, the City of Bells, is an independent Vorin city-state sheltered from the worst of highstorms by a bordering mountain. Once a pirate town, it's now a hub of academic and medical achievement with free healthcare for all (including lower castes and foreigners, though not singers, who can still be enslaved there). Most Kharbranthians are tan-skinned and dark-haired, ethnically close to Veden and Alethi.",
+      "names": ["Arivian", "Baranam", "Dorval", "Harnith", "Kintar", "Korventh", "Larnish", "Lervian", "Lorvis", "Navil", "Ovelgian", "Sartal", "Sarvena", "Telvar", "Trilam", "Zorlinth"],
+      "expertiseSummary": "Know the city's major education systems and their designations, plus common medicines and basic hygiene against rotspren, even without practicing medicine yourself. Choose your fluency in spoken Kharbranthian and in glyphs and women's script. Familiar with the basics of Vorinism, the Almighty, and the Heralds.",
+      "page": 40
+    },
+    {
+      "id": "listener",
+      "name": "Listener",
+      "summary": "The listeners are singers who defied Odium long ago and settled near the Shattered Plains, preserving their identity through oral tradition during \"the long sleep.\" After King Gavilar's assassination touched off the Alethi-fought War of Reckoning, Narak (built from the ruins of the old capital Stormseat) became their home while they slowly recovered lost forms. Listeners typically have red-and-white or red-and-black marbled skin, red carapace, red or black hair, and dark gray eyes.",
+      "names": ["Bredol", "Eldir", "Fenral", "Gromil", "Istarin", "Jarnak", "Kethan", "Koriel", "Lurin", "Nalim", "Nirith", "Orlan", "Rishai", "Saren", "Tirith", "Urlan", "Varem", "Welten"],
+      "expertiseSummary": "Know of dullform, mateform, nimbleform, warform, and workform (even if you can't personally assume them), the listener council known as the Five, basic Shattered Plains ecology, and the War of Reckoning. Choose your familiarity with the listener language and the rhythms.",
+      "singerOnly": true,
+      "page": 41
+    },
+    {
+      "id": "natan",
+      "name": "Natan",
+      "summary": "New Natanan is a small Vorin city-state near the Ocean of Origins, all that remains of a once-larger empire whose capital (Stormseat, now called Narak by the listeners who reclaimed it) was destroyed long ago. Some Natans live as nomads; ethnic Natans have pale blue skin and white hair, and grief over their lost empire and its Oathgate lingers.",
+      "names": ["Atarel", "Balar", "Cetsa", "Farlar", "Gerem", "Linarat", "Lortan", "Nalina", "Nathural", "Oranat", "Talinan", "Tsalar", "Tsorem", "Valisha", "Valten", "Xaltor"],
+      "expertiseSummary": "Know the lost lands of the old Natan empire and how highstorms behaved at full potency there, plus defensive measures against them. Choose your fluency in Natan or another Vorin language. Familiar with the basics of Vorinism and the Natan reverence for the moons.",
+      "page": 41
+    },
+    {
+      "id": "reshi",
+      "name": "Reshi",
+      "summary": "The Reshi Isles are misty waters dotted with living, roaming Tai-na greatshell islands that Reshi people worship as gods, occasionally colliding in brief conflicts; tourism thrives on the stationary islands. Reshi people generally have brown skin, black hair, and round faces, and their culture favors sharp, fast-resolving verbal conflict over lingering grudges.",
+      "names": ["Ashi", "Avand", "Calsi", "Fashan", "Hailor", "Ilesh", "Isna", "Jersa", "Lish", "Naila", "Neshor", "Rifta", "Sha", "Tana", "Trin", "Vara", "Wesh"],
+      "expertiseSummary": "Know of Tai-na greatshells, spren deities, and tales of islands at war, plus the basic ecology of the Reshi Sea and where its major stationary islands lie. Choose your fluency in speaking and writing Reshi. Know which resources aren't available locally and which nations typically supply them. Familiar with the Reshi preference for quick, fierce, but short-lived arguments.",
+      "page": 42
+    },
+    {
+      "id": "shin",
+      "name": "Shin",
+      "summary": "Isolated Shinovar is governed by Stone Shamans who hold stone sacred and forbid commoners from breaking or walking on it. A mountain range keeps its highstorms unusually mild, letting non-native crops and animals flourish. Farmers are esteemed while warriors are looked down on; those who commit grave offenses are named Truthless and surrender an Oathstone to a master who may command and trade them. Shin skin tones vary widely (including pale pink rarely seen elsewhere), and their eyes lack epicanthic folds, unlike most other Rosharan ethnic groups. Names follow a given name plus \"son/daughter/child of\" a parent; a disgraced child repeats the middle part of their name and swaps in a grandparent's name instead.",
+      "names": ["Allo-daughter-Zethar", "Ethsono-son-Alvo", "Gesh-son-Nar", "Lanethen-child-Gemth", "Lorseth-son-son-Thalor", "Nama-son-Elhlan", "Shal-daughter-Xin", "Szam-child-Lorn"],
+      "expertiseSummary": "Know Shinovar's mild highstorms and the ecology and architecture they support, and how to haggle by talking down the value of your own offerings. Choose your fluency in speaking and writing Shin. Familiar with the basics of Stone Shamanism.",
+      "page": 42
+    },
+    {
+      "id": "thaylen",
+      "name": "Thaylen",
+      "summary": "Island nation Thaylenah is led by a monarch elected by merchant councils and naval officers, and thrives on land and sea trade; industrious merchants gain social status. Thaylens are Vorin but relaxed about custom compared to Alethkar or Jah Keved. Ethnic Thaylens have tan skin and long white eyebrows often styled for fashion, with brown or black (sometimes dyed) hair, and favor tight vests over loose pants or skirts.",
+      "names": ["Alstrym", "Bnlath", "Brekmynv", "Bryndal", "Calkl", "Cazmerk", "Creyn", "Dvalnm", "Elcryn", "Klazmn", "Mralt", "Pradlvk", "Tlkry", "Uvlost", "Ylbedr"],
+      "expertiseSummary": "Know the elective monarchy and merchant councils, plus the names and reputations of major artifabrian guilds and everyday exposure to fabrials. Choose your fluency in speaking and writing Thaylen. Know tips against seasickness and travel between the three islands and outer islets. Familiar with the basics of Vorinism and the Passions.",
+      "page": 43
+    },
+    {
+      "id": "unkalaki",
+      "name": "Unkalaki",
+      "summary": "The Horneater Peaks are each led by a patriarch called a nuatoma; warm crater lakes (called \"oceans\" locally) form microclimates for farming atop otherwise icy, inhospitable mountains. Birth order dictates traditional occupation for sons (hunter/farmer, hunter/farmer, craftsman, warrior), while other genders' occupations are more individualized. Ancient singer ancestry gave Unkalaki abnormally strong, shell-crushing teeth (the source of the \"Horneater\" nickname); they tend tall with red hair and pale-to-tan skin. A rare few, called Sighted, can see spren most humans can't. A full Unkalaki name is a poem, though people typically go by a single word or phrase from it informally.",
+      "names": ["Arluno'ratha'tu", "Harlun'thaoka", "Ina'larataka'noom", "Kalorunel'ith", "Luau'nun'iel", "Tha'enithmonal'toko", "Unla'biki'ai'karath", "Yamloho'tamai'sinak"],
+      "expertiseSummary": "Know the leadership, ecology, and myths of the crater-lake \"oceans,\" and are physically acclimated to the thin mountain air. Choose your fluency in speaking and writing Unkalaki. Familiar with the local gods of water, mountains, and trees, the practice of worshiping spren as gods, and tales of offworld visitors emerging from the oceans.",
+      "page": 43
+    },
+    {
+      "id": "veden",
+      "name": "Veden",
+      "summary": "Jah Keved is ruled by a king and highprinces, with Vorinism (centered on the Holy Enclave in Valath) upholding its lighteyed/darkeyed social order; border disputes with Alethkar remain cordial. Its four major ethnic groups are Bav, Siln, Veden (the majority), and Unkalaki. Vedens share many physical traits with the Alethi, most often black or red hair, and speak a language mutually intelligible with Alethi. Sons take a birth-order first name (Nan, Tet, Asha, Van for the first four), a parent-chosen second name, and a surname passed down from the higher-ranked parent.",
+      "names": ["Nan Amallan", "Bervash", "Asha Cemdon", "Dorlivana", "Van Elnaha", "Lerinda", "Nan Qish", "Tet Ridvish", "Shulla", "Varli", "Tet Zashu"],
+      "expertiseSummary": "Know the king, the princedoms, and Jah Keved's four major ethnic groups. Choose your fluency in speaking Veden and in glyphs and women's script, and optionally in Alethi, Bav, or Siln. Familiar with the basics of Vorinism and current events relevant to the church.",
+      "page": 44
+    },
+    {
+      "id": "wayfarer",
+      "name": "Wayfarer",
+      "summary": "Not tied to any single nation: occupation, exile, or wanderlust can lead a character to live as a perpetual traveler, learning land and sea routes between major cities, watching for bandits and pirates, and living out of mobile storm shelters.",
+      "names": [],
+      "expertiseSummary": "Read international map keys and find trustworthy currency exchange for converting dun spheres to infused ones. Know basic greetings and cultural touchstones from a range of nations.",
+      "page": 44
+    }
+  ]
+}

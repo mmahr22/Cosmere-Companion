@@ -170,6 +170,16 @@
       "sprenType": "honorspren",
       "surgeIds": ["adhesion", "gravitation"],
       "page": 198
+    },
+    {
+      "id": "singer",
+      "name": "Singer",
+      "type": "ancestry",
+      "keyTalentId": "change_form_singer_key",
+      "specialties": [],
+      "summary": "The Singer talent tree: available in addition to any other trees a singer character has access to. Grants Change Form and, as prerequisites are met, forms of finesse, wisdom, and resolve, then (via the Ambitious Mind talent and a bond with a Voidspren) forms of destruction, expansion, and mystery.",
+      "surgeIds": [],
+      "page": 31
     }
   ]
 }

@@ -35,7 +35,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.cosmere.companion.core.data.RulesRepository
 import com.cosmere.companion.core.model.Activation
+import com.cosmere.companion.core.model.Ancestry
 import com.cosmere.companion.core.model.Condition
+import com.cosmere.companion.core.model.Culture
 import com.cosmere.companion.core.model.GamePath
 import com.cosmere.companion.core.model.SurgeEntry
 import com.cosmere.companion.core.model.SurgeTalent
@@ -44,6 +46,8 @@ import com.cosmere.companion.core.model.Talent
 /** Top-level category used for filtering the reference browser. */
 private enum class ReferenceCategory(val label: String) {
     ALL("All"),
+    ANCESTRIES("Ancestries"),
+    CULTURES("Cultures"),
     PATHS("Paths"),
     TALENTS("Talents"),
     SURGES("Surges"),
@@ -100,14 +104,37 @@ private sealed interface ReferenceEntry {
         override val category: ReferenceCategory = ReferenceCategory.CONDITIONS
         override val page: Int? = condition.page
     }
+
+    data class AncestryItem(val ancestry: Ancestry) : ReferenceEntry {
+        override val key: String = "ancestry:${ancestry.id}"
+        override val name: String = ancestry.name
+        override val subtitle: String = "Ancestry • Size ${ancestry.size}"
+        override val summary: String = ancestry.summary
+        override val category: ReferenceCategory = ReferenceCategory.ANCESTRIES
+        override val page: Int? = ancestry.page
+    }
+
+    data class CultureItem(val culture: Culture) : ReferenceEntry {
+        override val key: String = "culture:${culture.id}"
+        override val name: String = culture.name
+        override val subtitle: String = "Culture" + if (culture.singerOnly) " • Singer only" else ""
+        override val summary: String = culture.summary
+        override val category: ReferenceCategory = ReferenceCategory.CULTURES
+        override val page: Int? = culture.page
+    }
 }
 
 private fun buildReferenceEntries(): List<ReferenceEntry> {
-    val paths = RulesRepository.paths.map { ReferenceEntry.PathItem(it) }
+    // The "singer" entry in paths.json only exists so the Singer talent tree has a
+    // home for keyTalentId/talentsForPath lookups; it's surfaced to players as an
+    // Ancestry entry instead, not a second Paths entry.
+    val paths = RulesRepository.paths.filter { it.type != "ancestry" }.map { ReferenceEntry.PathItem(it) }
     val talents = RulesRepository.talents.map { ReferenceEntry.TalentItem(it) }
     val surges = RulesRepository.surges.map { ReferenceEntry.SurgeItem(it) }
     val conditions = RulesRepository.conditions.map { ReferenceEntry.ConditionItem(it) }
-    return paths + talents + surges + conditions
+    val ancestries = RulesRepository.ancestries.map { ReferenceEntry.AncestryItem(it) }
+    val cultures = RulesRepository.cultures.map { ReferenceEntry.CultureItem(it) }
+    return ancestries + cultures + paths + talents + surges + conditions
 }
 
 private fun formatIdentifier(raw: String): String =
@@ -266,6 +293,30 @@ private fun ReferenceEntryDetails(entry: ReferenceEntry) {
         is ReferenceEntry.TalentItem -> TalentDetails(entry.talent)
         is ReferenceEntry.SurgeItem -> SurgeDetails(entry.surge)
         is ReferenceEntry.ConditionItem -> ConditionDetails(entry.condition)
+        is ReferenceEntry.AncestryItem -> AncestryDetails(entry.ancestry)
+        is ReferenceEntry.CultureItem -> CultureDetails(entry.culture)
+    }
+}
+
+@Composable
+private fun AncestryDetails(ancestry: Ancestry) {
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        val levels = ancestry.bonusTalentLevels.joinToString()
+        Text("Bonus Talents (Level $levels): ${ancestry.bonusTalentSource}")
+        ancestry.keyTalentId?.let { keyTalentId ->
+            val keyTalentName = RulesRepository.talents.firstOrNull { it.id == keyTalentId }?.name ?: keyTalentId
+            Text("Key Talent (Level 1): $keyTalentName")
+        }
+    }
+}
+
+@Composable
+private fun CultureDetails(culture: Culture) {
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text("Expertise: ${culture.expertiseSummary}")
+        if (culture.names.isNotEmpty()) {
+            Text("Example Names: ${culture.names.joinToString()}")
+        }
     }
 }
 

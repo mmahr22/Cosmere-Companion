@@ -1,7 +1,11 @@
 package com.cosmere.companion.core.data
 
+import com.cosmere.companion.core.model.Ancestry
+import com.cosmere.companion.core.model.AncestriesFile
 import com.cosmere.companion.core.model.Condition
 import com.cosmere.companion.core.model.ConditionsFile
+import com.cosmere.companion.core.model.Culture
+import com.cosmere.companion.core.model.CulturesFile
 import com.cosmere.companion.core.model.GamePath
 import com.cosmere.companion.core.model.PathsFile
 import com.cosmere.companion.core.model.SurgeEntry
@@ -36,6 +40,14 @@ object RulesRepository {
         json.decodeFromString<TalentsFile>(readResource("/rules/talents.json")).talents
     }
 
+    val ancestries: List<Ancestry> by lazy {
+        json.decodeFromString<AncestriesFile>(readResource("/rules/ancestries.json")).ancestries
+    }
+
+    val cultures: List<Culture> by lazy {
+        json.decodeFromString<CulturesFile>(readResource("/rules/cultures.json")).cultures
+    }
+
     private val surgesFile: SurgesFile by lazy {
         json.decodeFromString<SurgesFile>(readResource("/rules/surges.json"))
     }
@@ -54,6 +66,10 @@ object RulesRepository {
     fun talentsForPath(pathId: String): List<Talent> = talents.filter { it.pathId == pathId }
 
     fun surgeById(id: String): SurgeEntry? = surges.firstOrNull { it.id == id }
+
+    fun ancestryById(id: String): Ancestry? = ancestries.firstOrNull { it.id == id }
+
+    fun cultureById(id: String): Culture? = cultures.firstOrNull { it.id == id }
 
     private fun readResource(path: String): String =
         requireNotNull(RulesRepository::class.java.getResource(path)) {

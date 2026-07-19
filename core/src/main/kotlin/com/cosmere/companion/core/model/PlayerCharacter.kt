@@ -8,9 +8,12 @@ package com.cosmere.companion.core.model
  * by a surge's id (see [SurgeEntry.id]) once a Radiant order's surges are
  * unlocked.
  *
- * Ancestry and culture are freeform flavor text: this app doesn't bundle
- * ancestry/culture mechanical data (attribute bonuses, abilities, etc.) yet,
- * so no fixed list is offered here.
+ * [ancestryId] and [cultureIds] resolve against [com.cosmere.companion.core.data.RulesRepository.ancestryById]
+ * and [com.cosmere.companion.core.data.RulesRepository.cultureById]; a
+ * character has at most two cultures per the book's character creation
+ * rules. Neither field grants talents automatically — like heroic/Radiant
+ * path talents, ancestry bonus talents aren't tracked as a structured list
+ * anywhere in this app yet.
  *
  * There's no printed formula for maximum Investiture in the data bundled so
  * far (unlike health/focus, which [CharacterMath] derives directly from the
@@ -19,8 +22,8 @@ package com.cosmere.companion.core.model
  */
 data class PlayerCharacter(
     val name: String,
-    val ancestry: String = "",
-    val culture: String = "",
+    val ancestryId: String? = null,
+    val cultureIds: List<String> = emptyList(),
     val level: Int = 1,
     val attributes: Map<Attribute, Int> = Attribute.entries.associateWith { 0 },
     val heroicPathId: String,

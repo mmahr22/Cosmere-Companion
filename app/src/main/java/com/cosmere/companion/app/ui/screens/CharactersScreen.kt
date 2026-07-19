@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -40,15 +41,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.cosmere.companion.core.data.RulesRepository
+import com.cosmere.companion.core.model.Ancestry
 import com.cosmere.companion.core.model.Attribute
 import com.cosmere.companion.core.model.CharacterMath
 import com.cosmere.companion.core.model.Defense
 import com.cosmere.companion.core.model.GamePath
 import com.cosmere.companion.core.model.PlayerCharacter
 import com.cosmere.companion.core.model.Skill
+
+private const val MAX_CULTURES = 2
 
 @Composable
 fun CharactersScreen(viewModel: CharacterViewModel = viewModel()) {
@@ -76,8 +81,8 @@ private fun CharacterCreationForm(onCreate: (PlayerCharacter) -> Unit) {
     val radiantPaths = remember { RulesRepository.paths.filter { it.type == "radiant" } }
 
     var name by remember { mutableStateOf("") }
-    var ancestry by remember { mutableStateOf("") }
-    var culture by remember { mutableStateOf("") }
+    var ancestryId by remember { mutableStateOf<String?>(null) }
+    val cultureIds = remember { mutableStateListOf<String>() }
     val attributes = remember {
         mutableStateMapOf<Attribute, Int>().apply { Attribute.entries.forEach { put(it, 0) } }
     }
@@ -98,6 +103,7 @@ private fun CharacterCreationForm(onCreate: (PlayerCharacter) -> Unit) {
     }
 
     val canCreate = name.isNotBlank() &&
+        ancestryId != null &&
         heroicPathId != null &&
         attributePointsRemaining == 0 &&
         skillPointsRemaining == 0
@@ -117,18 +123,49 @@ private fun CharacterCreationForm(onCreate: (PlayerCharacter) -> Unit) {
             label = { Text("Character name") },
             modifier = Modifier.fillMaxWidth(),
         )
-        OutlinedTextField(
-            value = ancestry,
-            onValueChange = { ancestry = it },
-            label = { Text("Ancestry (optional)") },
-            modifier = Modifier.fillMaxWidth(),
+        HorizontalDivider()
+
+        Text("Ancestry", style = MaterialTheme.typography.titleMedium)
+        RulesRepository.ancestries.forEach { ancestry ->
+            SelectableAncestryRow(
+                ancestry = ancestry,
+                selected = ancestryId == ancestry.id,
+                onClick = {
+                    ancestryId = ancestry.id
+                    if (ancestry.id != "singer") {
+                        cultureIds.remove("listener")
+                    }
+                },
+            )
+        }
+
+        Text(
+            "Culture (choose up to $MAX_CULTURES)",
+            style = MaterialTheme.typography.titleMedium,
         )
-        OutlinedTextField(
-            value = culture,
-            onValueChange = { culture = it },
-            label = { Text("Culture (optional)") },
-            modifier = Modifier.fillMaxWidth(),
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            RulesRepository.cultures
+                .filter { !it.singerOnly || ancestryId == "singer" }
+                .forEach { cultureOption ->
+                    val selected = cultureOption.id in cultureIds
+                    FilterChip(
+                        selected = selected,
+                        onClick = {
+                            if (selected) {
+                                cultureIds.remove(cultureOption.id)
+                            } else if (cultureIds.size < MAX_CULTURES) {
+                                cultureIds.add(cultureOption.id)
+                            }
+                        },
+                        label = { Text(cultureOption.name) },
+                    )
+                }
+        }
 
         HorizontalDivider()
 
@@ -271,8 +308,8 @@ private fun CharacterCreationForm(onCreate: (PlayerCharacter) -> Unit) {
                 onCreate(
                     PlayerCharacter(
                         name = name.trim(),
-                        ancestry = ancestry.trim(),
-                        culture = culture.trim(),
+                        ancestryId = ancestryId,
+                        cultureIds = cultureIds.toList(),
                         attributes = attributes.toMap(),
                         heroicPathId = heroicPathId!!,
                         specialty = specialty,
@@ -285,6 +322,31 @@ private fun CharacterCreationForm(onCreate: (PlayerCharacter) -> Unit) {
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text("Create Character")
+        }
+    }
+}
+
+@Composable
+private fun SelectableAncestryRow(ancestry: Ancestry, selected: Boolean, onClick: () -> Unit) {
+    Card(
+        onClick = onClick,
+        colors = CardDefaults.cardColors(
+            containerColor = if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+        ),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Text(
+                ancestry.name,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+            )
+            Text(
+                ancestry.summary,
+                style = MaterialTheme.typography.bodySmall,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
     }
 }
@@ -324,6 +386,12 @@ private fun CharacterSheet(
     val radiantPath = remember(character.radiantPathId) {
         character.radiantPathId?.let { RulesRepository.pathById(it) }
     }
+    val ancestry = remember(character.ancestryId) {
+        character.ancestryId?.let { RulesRepository.ancestryById(it) }
+    }
+    val cultures = remember(character.cultureIds) {
+        character.cultureIds.mapNotNull { RulesRepository.cultureById(it) }
+    }
 
     fun updateSkillRank(skillId: String, newRank: Int) {
         val clamped = newRank.coerceIn(0, CharacterMath.maxSkillRank(character.level))
@@ -338,9 +406,9 @@ private fun CharacterSheet(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(character.name, style = MaterialTheme.typography.headlineSmall)
-        if (character.ancestry.isNotBlank() || character.culture.isNotBlank()) {
+        if (ancestry != null || cultures.isNotEmpty()) {
             Text(
-                listOf(character.ancestry, character.culture).filter { it.isNotBlank() }.joinToString(" · "),
+                (listOfNotNull(ancestry?.name) + cultures.map { it.name }).joinToString(" · "),
                 style = MaterialTheme.typography.bodyMedium,
             )
         }
