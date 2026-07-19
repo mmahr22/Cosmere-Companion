@@ -1,5 +1,6 @@
 package com.cosmere.companion.app.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -50,6 +51,8 @@ import com.cosmere.companion.core.model.Attribute
 import com.cosmere.companion.core.model.CharacterMath
 import com.cosmere.companion.core.model.Defense
 import com.cosmere.companion.core.model.GamePath
+import com.cosmere.companion.core.model.Item
+import com.cosmere.companion.core.model.ItemType
 import com.cosmere.companion.core.model.PlayerCharacter
 import com.cosmere.companion.core.model.Skill
 
@@ -526,10 +529,182 @@ private fun CharacterSheet(
             }
         }
 
+        HorizontalDivider()
+        InventorySection(character = character, onUpdate = onUpdate)
+
         OutlinedButton(onClick = onReset, modifier = Modifier.fillMaxWidth()) {
             Text("New Character")
         }
     }
+}
+
+@Composable
+private fun InventorySection(character: PlayerCharacter, onUpdate: (PlayerCharacter) -> Unit) {
+    val itemsById = remember { RulesRepository.items.associateBy { it.id } }
+    val equippedArmor = character.equippedArmorId?.let { itemsById[it] }
+    val equippedWeapons = character.equippedWeaponIds.mapNotNull { itemsById[it] }
+    val ownedEntries = remember(character.inventory) {
+        character.inventory.entries
+            .filter { it.value > 0 }
+            .mapNotNull { (id, qty) -> itemsById[id]?.let { it to qty } }
+            .sortedBy { it.first.name }
+    }
+
+    fun setQuantity(item: Item, newQuantity: Int) {
+        val clamped = newQuantity.coerceAtLeast(0)
+        val newInventory = if (clamped == 0) character.inventory - item.id else character.inventory + (item.id to clamped)
+        var updated = character.copy(inventory = newInventory)
+        if (clamped == 0) {
+            if (updated.equippedArmorId == item.id) updated = updated.copy(equippedArmorId = null)
+            if (item.id in updated.equippedWeaponIds) {
+                updated = updated.copy(equippedWeaponIds = updated.equippedWeaponIds - item.id)
+            }
+        }
+        onUpdate(updated)
+    }
+
+    fun toggleEquip(item: Item) {
+        when (item.type) {
+            ItemType.ARMOR -> onUpdate(
+                character.copy(equippedArmorId = if (character.equippedArmorId == item.id) null else item.id),
+            )
+            ItemType.WEAPON -> {
+                val newWeapons = if (item.id in character.equippedWeaponIds) {
+                    character.equippedWeaponIds - item.id
+                } else {
+                    character.equippedWeaponIds + item.id
+                }
+                onUpdate(character.copy(equippedWeaponIds = newWeapons))
+            }
+            else -> Unit
+        }
+    }
+
+    Text("Inventory", style = MaterialTheme.typography.titleMedium)
+
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text("Equipped", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+            Text(
+                "Armor: ${equippedArmor?.name ?: "None"} (Deflect ${character.deflectValue})",
+                style = MaterialTheme.typography.bodySmall,
+            )
+            Text(
+                "Weapons: " + if (equippedWeapons.isEmpty()) "None" else equippedWeapons.joinToString { it.name },
+                style = MaterialTheme.typography.bodySmall,
+            )
+        }
+    }
+
+    if (ownedEntries.isEmpty()) {
+        Text("No items carried yet.", style = MaterialTheme.typography.bodySmall)
+    } else {
+        Text("Carried Items", style = MaterialTheme.typography.labelLarge)
+        ownedEntries.forEach { (item, quantity) ->
+            val equipped = item.id == character.equippedArmorId || item.id in character.equippedWeaponIds
+            InventoryItemRow(
+                item = item,
+                quantity = quantity,
+                equipped = equipped,
+                onQuantityChange = { setQuantity(item, it) },
+                onToggleEquip = if (item.type == ItemType.WEAPON || item.type == ItemType.ARMOR) {
+                    { toggleEquip(item) }
+                } else {
+                    null
+                },
+            )
+        }
+    }
+
+    HorizontalDivider()
+
+    Text("Add Item", style = MaterialTheme.typography.labelLarge)
+    var addQuery by remember { mutableStateOf("") }
+    OutlinedTextField(
+        value = addQuery,
+        onValueChange = { addQuery = it },
+        modifier = Modifier.fillMaxWidth(),
+        placeholder = { Text("Search weapons, armor, equipment, fabrials…") },
+        singleLine = true,
+    )
+    if (addQuery.isNotBlank()) {
+        val matches = remember(addQuery) {
+            RulesRepository.items.filter { it.name.contains(addQuery, ignoreCase = true) }.take(8)
+        }
+        if (matches.isEmpty()) {
+            Text("No matching items.", style = MaterialTheme.typography.bodySmall)
+        } else {
+            matches.forEach { item ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            setQuantity(item, character.inventoryQuantity(item.id) + 1)
+                            addQuery = ""
+                        }
+                        .padding(vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(item.name, style = MaterialTheme.typography.bodyMedium)
+                        Text(
+                            itemSubtitle(item),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    Icon(Icons.Filled.Add, contentDescription = "Add ${item.name}")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun InventoryItemRow(
+    item: Item,
+    quantity: Int,
+    equipped: Boolean,
+    onQuantityChange: (Int) -> Unit,
+    onToggleEquip: (() -> Unit)?,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(item.name, fontWeight = if (equipped) FontWeight.Bold else FontWeight.Normal)
+            Text(
+                itemSubtitle(item),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        if (onToggleEquip != null) {
+            FilterChip(
+                selected = equipped,
+                onClick = onToggleEquip,
+                label = { Text(if (equipped) "Equipped" else "Equip") },
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+        }
+        IconButton(onClick = { onQuantityChange(quantity - 1) }, enabled = quantity > 0) {
+            Icon(Icons.Filled.Remove, contentDescription = "Decrease ${item.name} quantity")
+        }
+        Text("$quantity", modifier = Modifier.width(20.dp), textAlign = TextAlign.Center)
+        IconButton(onClick = { onQuantityChange(quantity + 1) }) {
+            Icon(Icons.Filled.Add, contentDescription = "Increase ${item.name} quantity")
+        }
+    }
+}
+
+private fun itemSubtitle(item: Item): String = when (item.type) {
+    ItemType.WEAPON -> "Weapon" + (item.category?.let { " • $it" } ?: "")
+    ItemType.ARMOR -> "Armor • Deflect ${item.deflectValue ?: 0}"
+    ItemType.FABRIAL -> "Fabrial"
+    ItemType.EQUIPMENT -> "Equipment"
 }
 
 @Composable

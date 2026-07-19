@@ -107,4 +107,31 @@ class PlayerCharacterTest {
         assertEquals(noForm.effectiveAttribute(Attribute.WILLPOWER), inWarform.effectiveAttribute(Attribute.WILLPOWER))
         assertEquals(noForm.maxFocus, inWarform.maxFocus)
     }
+
+    @Test
+    fun `inventoryQuantity defaults to zero for items not carried`() {
+        val character = PlayerCharacter(
+            name = "Lopen",
+            attributes = attributes,
+            heroicPathId = "warrior",
+            inventory = mapOf("rope" to 2),
+        )
+
+        assertEquals(2, character.inventoryQuantity("rope"))
+        assertEquals(0, character.inventoryQuantity("longsword"))
+    }
+
+    @Test
+    fun `deflect value comes from equipped armor and is zero when unarmored`() {
+        val unarmored = PlayerCharacter(
+            name = "Lopen",
+            attributes = attributes,
+            heroicPathId = "warrior",
+            inventory = mapOf("chain_armor" to 1),
+        )
+        assertEquals(0, unarmored.deflectValue)
+
+        val armored = unarmored.copy(equippedArmorId = "chain_armor")
+        assertEquals(2, armored.deflectValue)
+    }
 }

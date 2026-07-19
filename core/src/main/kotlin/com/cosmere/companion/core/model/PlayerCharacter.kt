@@ -30,6 +30,14 @@ import com.cosmere.companion.core.data.RulesRepository
  * far (unlike health/focus, which [CharacterMath] derives directly from the
  * book's worked examples), so [maxInvestiture] is tracked as a plain value
  * the player sets rather than a computed one.
+ *
+ * [inventory] is every item the character owns, keyed by [Item.id] with a
+ * quantity; [equippedArmorId] and [equippedWeaponIds] mark which of those
+ * owned items are currently worn/wielded (the book only allows one worn
+ * armor at a time, but any number of held weapons). Only [equippedArmorId]
+ * feeds into a derived stat ([deflectValue]) today — deflect is the one
+ * piece of gear math this app tracks outside of combat, since everything
+ * else an item's traits do (damage, special actions) only matters mid-fight.
  */
 data class PlayerCharacter(
     val name: String,
@@ -47,6 +55,9 @@ data class PlayerCharacter(
     val maxInvestiture: Int = 0,
     val unlockedFormIds: List<String> = emptyList(),
     val currentFormId: String? = null,
+    val inventory: Map<String, Int> = emptyMap(),
+    val equippedWeaponIds: List<String> = emptyList(),
+    val equippedArmorId: String? = null,
 ) {
     fun attribute(attribute: Attribute): Int = attributes[attribute] ?: 0
 
@@ -71,4 +82,10 @@ data class PlayerCharacter(
 
     /** Forms this character can currently switch into: the two free starting forms plus any unlocked. */
     val availableFormIds: List<String> get() = listOf("dullform", "mateform") + unlockedFormIds
+
+    fun inventoryQuantity(itemId: String): Int = inventory[itemId] ?: 0
+
+    /** Deflect value from the currently worn armor, or 0 if none is equipped. */
+    val deflectValue: Int
+        get() = equippedArmorId?.let { RulesRepository.itemById(it)?.deflectValue } ?: 0
 }

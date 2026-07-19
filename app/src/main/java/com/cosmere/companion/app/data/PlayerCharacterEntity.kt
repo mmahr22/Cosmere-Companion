@@ -47,6 +47,9 @@ data class PlayerCharacterEntity(
     val maxInvestiture: Int,
     val unlockedFormIds: List<String>,
     val currentFormId: String?,
+    val inventory: Map<String, Int>,
+    val equippedWeaponIds: List<String>,
+    val equippedArmorId: String?,
 ) {
     companion object {
         const val CURRENT_CHARACTER_ID = 0
@@ -69,6 +72,9 @@ fun PlayerCharacter.toEntity(): PlayerCharacterEntity = PlayerCharacterEntity(
     maxInvestiture = maxInvestiture,
     unlockedFormIds = unlockedFormIds,
     currentFormId = currentFormId,
+    inventory = inventory,
+    equippedWeaponIds = equippedWeaponIds,
+    equippedArmorId = equippedArmorId,
 )
 
 fun PlayerCharacterEntity.toDomain(): PlayerCharacter = PlayerCharacter(
@@ -89,4 +95,7 @@ fun PlayerCharacterEntity.toDomain(): PlayerCharacter = PlayerCharacter(
     maxInvestiture = maxInvestiture,
     unlockedFormIds = unlockedFormIds,
     currentFormId = currentFormId,
+    inventory = inventory,
+    equippedWeaponIds = equippedWeaponIds,
+    equippedArmorId = equippedArmorId,
 )
