@@ -1,5 +1,7 @@
 # Cosmere Companion
 
+[![CI](https://github.com/mmahr22/Cosmere-Companion/actions/workflows/ci.yml/badge.svg)](https://github.com/mmahr22/Cosmere-Companion/actions/workflows/ci.yml)
+
 An unofficial Android companion app for the **Cosmere RPG** (Stormlight Handbook)
 by Brotherwise Games — in the spirit of apps like Fight Club 5e for D&D.
 
