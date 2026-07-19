@@ -72,4 +72,39 @@ class PlayerCharacterTest {
         assertEquals(1, character.currentFocus)
         assertEquals(12, character.maxHealth)
     }
+
+    @Test
+    fun `available forms are the two starting forms plus any unlocked`() {
+        val character = PlayerCharacter(
+            name = "Rlain",
+            ancestryId = "singer",
+            attributes = attributes,
+            heroicPathId = "warrior",
+            unlockedFormIds = listOf("warform"),
+        )
+
+        assertEquals(listOf("dullform", "mateform", "warform"), character.availableFormIds)
+    }
+
+    @Test
+    fun `active form's attribute bonuses feed into effective attribute, defense, and max health-focus`() {
+        val noForm = PlayerCharacter(
+            name = "Rlain",
+            ancestryId = "singer",
+            attributes = attributes,
+            heroicPathId = "warrior",
+            unlockedFormIds = listOf("warform"),
+        )
+        val inWarform = noForm.copy(currentFormId = "warform")
+
+        // warform grants Strength +1
+        assertEquals(2, noForm.effectiveAttribute(Attribute.STRENGTH))
+        assertEquals(3, inWarform.effectiveAttribute(Attribute.STRENGTH))
+        assertEquals(noForm.defense(Defense.PHYSICAL) + 1, inWarform.defense(Defense.PHYSICAL))
+        assertEquals(noForm.maxHealth + 1, inWarform.maxHealth)
+
+        // Attributes untouched by the active form are unaffected.
+        assertEquals(noForm.effectiveAttribute(Attribute.WILLPOWER), inWarform.effectiveAttribute(Attribute.WILLPOWER))
+        assertEquals(noForm.maxFocus, inWarform.maxFocus)
+    }
 }

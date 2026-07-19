@@ -8,6 +8,8 @@ import com.cosmere.companion.core.model.Culture
 import com.cosmere.companion.core.model.CulturesFile
 import com.cosmere.companion.core.model.GamePath
 import com.cosmere.companion.core.model.PathsFile
+import com.cosmere.companion.core.model.SingerForm
+import com.cosmere.companion.core.model.SingerFormsFile
 import com.cosmere.companion.core.model.SurgeEntry
 import com.cosmere.companion.core.model.SurgeScalingRow
 import com.cosmere.companion.core.model.SurgesFile
@@ -48,6 +50,10 @@ object RulesRepository {
         json.decodeFromString<CulturesFile>(readResource("/rules/cultures.json")).cultures
     }
 
+    val singerForms: List<SingerForm> by lazy {
+        json.decodeFromString<SingerFormsFile>(readResource("/rules/singer_forms.json")).forms
+    }
+
     private val surgesFile: SurgesFile by lazy {
         json.decodeFromString<SurgesFile>(readResource("/rules/surges.json"))
     }
@@ -70,6 +76,8 @@ object RulesRepository {
     fun ancestryById(id: String): Ancestry? = ancestries.firstOrNull { it.id == id }
 
     fun cultureById(id: String): Culture? = cultures.firstOrNull { it.id == id }
+
+    fun singerFormById(id: String): SingerForm? = singerForms.firstOrNull { it.id == id }
 
     private fun readResource(path: String): String =
         requireNotNull(RulesRepository::class.java.getResource(path)) {

@@ -1,5 +1,7 @@
 package com.cosmere.companion.core.model
 
+import com.cosmere.companion.core.data.RulesRepository
+
 /**
  * A player character sheet: identity, attributes, path choices, skill ranks,
  * and the resource pools tracked during play.
@@ -14,6 +16,15 @@ package com.cosmere.companion.core.model
  * rules. Neither field grants talents automatically — like heroic/Radiant
  * path talents, ancestry bonus talents aren't tracked as a structured list
  * anywhere in this app yet.
+ *
+ * [unlockedFormIds] and [currentFormId] track a Singer's Change Form talent
+ * tree: which forms (beyond the always-available dullform/mateform) the
+ * player has picked up via later Singer-tree talents, and which one is
+ * currently active. Since individual talent purchases aren't tracked
+ * anywhere else in this app either, [unlockedFormIds] is a direct player
+ * declaration rather than something derived from a talent list — the sheet
+ * lets the player toggle it the same way it lets them edit skill ranks
+ * directly rather than modeling the talents that grant them.
  *
  * There's no printed formula for maximum Investiture in the data bundled so
  * far (unlike health/focus, which [CharacterMath] derives directly from the
@@ -34,14 +45,30 @@ data class PlayerCharacter(
     val currentFocus: Int = CharacterMath.maxFocus(attributes[Attribute.WILLPOWER] ?: 0),
     val currentInvestiture: Int = 0,
     val maxInvestiture: Int = 0,
+    val unlockedFormIds: List<String> = emptyList(),
+    val currentFormId: String? = null,
 ) {
     fun attribute(attribute: Attribute): Int = attributes[attribute] ?: 0
 
-    fun defense(defense: Defense): Int = CharacterMath.defense(defense, attributes)
+    /** [attribute] plus any bonus from the character's currently active Singer form, if any. */
+    fun effectiveAttribute(attribute: Attribute): Int {
+        val formBonus = currentFormId
+            ?.let { RulesRepository.singerFormById(it) }
+            ?.attributeBonuses
+            ?.get(attribute.name)
+            ?: 0
+        return attribute(attribute) + formBonus
+    }
 
-    val maxHealth: Int get() = CharacterMath.maxHealth(level, attribute(Attribute.STRENGTH))
+    fun defense(defense: Defense): Int =
+        CharacterMath.defense(defense, Attribute.entries.associateWith { effectiveAttribute(it) })
 
-    val maxFocus: Int get() = CharacterMath.maxFocus(attribute(Attribute.WILLPOWER))
+    val maxHealth: Int get() = CharacterMath.maxHealth(level, effectiveAttribute(Attribute.STRENGTH))
+
+    val maxFocus: Int get() = CharacterMath.maxFocus(effectiveAttribute(Attribute.WILLPOWER))
 
     fun skillRank(skillId: String): Int = skillRanks[skillId] ?: 0
+
+    /** Forms this character can currently switch into: the two free starting forms plus any unlocked. */
+    val availableFormIds: List<String> get() = listOf("dullform", "mateform") + unlockedFormIds
 }

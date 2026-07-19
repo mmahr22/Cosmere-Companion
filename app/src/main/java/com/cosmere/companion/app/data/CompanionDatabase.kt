@@ -6,7 +6,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 
-@Database(entities = [PlayerCharacterEntity::class], version = 2, exportSchema = true)
+@Database(entities = [PlayerCharacterEntity::class], version = 3, exportSchema = true)
 @TypeConverters(MapConverters::class)
 abstract class CompanionDatabase : RoomDatabase() {
     abstract fun playerCharacterDao(): PlayerCharacterDao
@@ -22,9 +22,8 @@ abstract class CompanionDatabase : RoomDatabase() {
                     CompanionDatabase::class.java,
                     "cosmere-companion.db",
                 )
-                    // No migration path exists yet for this pre-release schema
-                    // change (ancestry/culture went from freeform strings to
-                    // structured ids); the single stored row is disposable.
+                    // No migration path exists yet for this pre-release schema;
+                    // the single stored row is disposable.
                     .fallbackToDestructiveMigration(dropAllTables = true)
                     .build().also { instance = it }
             }

@@ -1,0 +1,117 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 3,
+    "identityHash": "8f8d96cc7945e2f39bc8c95a6130f017",
+    "entities": [
+      {
+        "tableName": "player_character",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `name` TEXT NOT NULL, `ancestryId` TEXT, `cultureIds` TEXT NOT NULL, `level` INTEGER NOT NULL, `attributes` TEXT NOT NULL, `heroicPathId` TEXT NOT NULL, `specialty` TEXT, `radiantPathId` TEXT, `skillRanks` TEXT NOT NULL, `currentHealth` INTEGER NOT NULL, `currentFocus` INTEGER NOT NULL, `currentInvestiture` INTEGER NOT NULL, `maxInvestiture` INTEGER NOT NULL, `unlockedFormIds` TEXT NOT NULL, `currentFormId` TEXT, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ancestryId",
+            "columnName": "ancestryId",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "cultureIds",
+            "columnName": "cultureIds",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "level",
+            "columnName": "level",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "attributes",
+            "columnName": "attributes",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "heroicPathId",
+            "columnName": "heroicPathId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "specialty",
+            "columnName": "specialty",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "radiantPathId",
+            "columnName": "radiantPathId",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "skillRanks",
+            "columnName": "skillRanks",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "currentHealth",
+            "columnName": "currentHealth",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "currentFocus",
+            "columnName": "currentFocus",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "currentInvestiture",
+            "columnName": "currentInvestiture",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "maxInvestiture",
+            "columnName": "maxInvestiture",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "unlockedFormIds",
+            "columnName": "unlockedFormIds",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "currentFormId",
+            "columnName": "currentFormId",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '8f8d96cc7945e2f39bc8c95a6130f017')"
+    ]
+  }
+}

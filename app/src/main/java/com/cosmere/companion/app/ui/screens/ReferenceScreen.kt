@@ -38,7 +38,9 @@ import com.cosmere.companion.core.model.Activation
 import com.cosmere.companion.core.model.Ancestry
 import com.cosmere.companion.core.model.Condition
 import com.cosmere.companion.core.model.Culture
+import com.cosmere.companion.core.model.Attribute
 import com.cosmere.companion.core.model.GamePath
+import com.cosmere.companion.core.model.SingerForm
 import com.cosmere.companion.core.model.SurgeEntry
 import com.cosmere.companion.core.model.SurgeTalent
 import com.cosmere.companion.core.model.Talent
@@ -50,6 +52,7 @@ private enum class ReferenceCategory(val label: String) {
     CULTURES("Cultures"),
     PATHS("Paths"),
     TALENTS("Talents"),
+    SINGER_FORMS("Forms"),
     SURGES("Surges"),
     CONDITIONS("Conditions"),
 }
@@ -122,6 +125,15 @@ private sealed interface ReferenceEntry {
         override val category: ReferenceCategory = ReferenceCategory.CULTURES
         override val page: Int? = culture.page
     }
+
+    data class SingerFormItem(val form: SingerForm) : ReferenceEntry {
+        override val key: String = "singer_form:${form.id}"
+        override val name: String = form.name
+        override val subtitle: String = "Form • Bonded to ${form.sprenBond}" + if (form.voidform) " (Voidspren)" else ""
+        override val summary: String = form.summary
+        override val category: ReferenceCategory = ReferenceCategory.SINGER_FORMS
+        override val page: Int? = form.page
+    }
 }
 
 private fun buildReferenceEntries(): List<ReferenceEntry> {
@@ -134,7 +146,8 @@ private fun buildReferenceEntries(): List<ReferenceEntry> {
     val conditions = RulesRepository.conditions.map { ReferenceEntry.ConditionItem(it) }
     val ancestries = RulesRepository.ancestries.map { ReferenceEntry.AncestryItem(it) }
     val cultures = RulesRepository.cultures.map { ReferenceEntry.CultureItem(it) }
-    return ancestries + cultures + paths + talents + surges + conditions
+    val singerForms = RulesRepository.singerForms.map { ReferenceEntry.SingerFormItem(it) }
+    return ancestries + cultures + paths + talents + singerForms + surges + conditions
 }
 
 private fun formatIdentifier(raw: String): String =
@@ -295,6 +308,7 @@ private fun ReferenceEntryDetails(entry: ReferenceEntry) {
         is ReferenceEntry.ConditionItem -> ConditionDetails(entry.condition)
         is ReferenceEntry.AncestryItem -> AncestryDetails(entry.ancestry)
         is ReferenceEntry.CultureItem -> CultureDetails(entry.culture)
+        is ReferenceEntry.SingerFormItem -> SingerFormDetails(entry.form)
     }
 }
 
@@ -316,6 +330,26 @@ private fun CultureDetails(culture: Culture) {
         Text("Expertise: ${culture.expertiseSummary}")
         if (culture.names.isNotEmpty()) {
             Text("Example Names: ${culture.names.joinToString()}")
+        }
+    }
+}
+
+@Composable
+private fun SingerFormDetails(form: SingerForm) {
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        if (form.attributeBonuses.isNotEmpty()) {
+            val bonuses = form.attributeBonuses.entries.joinToString {
+                val abbreviation = Attribute.entries.find { attr -> attr.name == it.key }?.abbreviation ?: it.key
+                "$abbreviation +${it.value}"
+            }
+            Text("Attribute Bonuses: $bonuses")
+        }
+        val grantedBy = form.grantedByTalentId
+        if (grantedBy == null) {
+            Text("Granted by: Change Form (starting form)")
+        } else {
+            val talentName = RulesRepository.talents.firstOrNull { it.id == grantedBy }?.name ?: grantedBy
+            Text("Granted by: $talentName")
         }
     }
 }

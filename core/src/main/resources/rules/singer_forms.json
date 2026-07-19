@@ -1,0 +1,136 @@
+{
+  "forms": [
+    {
+      "id": "dullform",
+      "name": "Dullform",
+      "sprenBond": "none",
+      "summary": "The unspecialized starting form. Lets you pass as a \"parshman\" but grants no other benefit.",
+      "attributeBonuses": {},
+      "grantedByTalentId": null,
+      "page": 31
+    },
+    {
+      "id": "mateform",
+      "name": "Mateform",
+      "sprenBond": "lifespren",
+      "summary": "Specialized for reproduction. No combat benefits.",
+      "attributeBonuses": {},
+      "grantedByTalentId": null,
+      "page": 31
+    },
+    {
+      "id": "artform",
+      "name": "Artform",
+      "sprenBond": "creationspren",
+      "summary": "Gain the Painting and Music expertises, and an advantage on Crafting tests and tests to entertain (singing, dancing).",
+      "attributeBonuses": {"AWARENESS": 1},
+      "grantedByTalentId": "forms_of_finesse",
+      "page": 32
+    },
+    {
+      "id": "nimbleform",
+      "name": "Nimbleform",
+      "sprenBond": "windspren",
+      "summary": "Your maximum and current focus both increase by 2 while in this form, reverting when you change form.",
+      "attributeBonuses": {"SPEED": 1},
+      "grantedByTalentId": "forms_of_finesse",
+      "page": 32
+    },
+    {
+      "id": "mediationform",
+      "name": "Mediationform",
+      "sprenBond": "bindspren",
+      "summary": "You can use the Aid reaction without spending focus.",
+      "attributeBonuses": {"PRESENCE": 1},
+      "grantedByTalentId": "forms_of_wisdom",
+      "page": 32
+    },
+    {
+      "id": "scholarform",
+      "name": "Scholarform",
+      "sprenBond": "logicspren",
+      "summary": "Temporarily gain one cultural or utility expertise plus a rank in a non-surge cognitive skill of your choice.",
+      "attributeBonuses": {"INTELLECT": 1},
+      "grantedByTalentId": "forms_of_wisdom",
+      "page": 32
+    },
+    {
+      "id": "warform",
+      "name": "Warform",
+      "sprenBond": "painspren",
+      "summary": "Deflect +1 (doesn't stack with worn armor), and you can jump a horizontal distance up to your movement rate or vertical up to half your movement rate without an Athletics test.",
+      "attributeBonuses": {"STRENGTH": 1},
+      "grantedByTalentId": "forms_of_resolve",
+      "page": 32
+    },
+    {
+      "id": "workform",
+      "name": "Workform",
+      "sprenBond": "gravitationspren",
+      "summary": "Ignore the Exhausted condition, and you can easily disguise yourself as a \"parshman.\"",
+      "attributeBonuses": {"WILLPOWER": 1},
+      "grantedByTalentId": "forms_of_resolve",
+      "page": 32
+    },
+    {
+      "id": "direform",
+      "name": "Direform",
+      "sprenBond": "callousspren",
+      "summary": "Deflect +2 (doesn't stack with armor), and when you trigger a Reactive Strike you can attempt to Grapple instead of attacking (still costs 1 focus).",
+      "attributeBonuses": {"STRENGTH": 2},
+      "grantedByTalentId": "forms_of_destruction",
+      "voidform": true,
+      "page": 35
+    },
+    {
+      "id": "stormform",
+      "name": "Stormform",
+      "sprenBond": "stormspren",
+      "summary": "Deflect +1 (doesn't stack with armor), and you gain Unleash Lightning: spend 1 focus or 1 Investiture to make a ranged Discipline attack (60 feet) vs. Physical defense for 2d8 energy damage (2d10 at 4 Discipline ranks, 2d12 at 5 or more), Disorienting the target on a hit.",
+      "attributeBonuses": {"STRENGTH": 1, "SPEED": 1},
+      "grantedByTalentId": "forms_of_destruction",
+      "voidform": true,
+      "page": 35
+    },
+    {
+      "id": "envoyform",
+      "name": "Envoyform",
+      "sprenBond": "zealspren",
+      "summary": "You speak, read, write, and understand all languages, with an advantage on Insight tests to read others' intentions.",
+      "attributeBonuses": {"INTELLECT": 1, "PRESENCE": 1},
+      "grantedByTalentId": "forms_of_expansion",
+      "voidform": true,
+      "page": 36
+    },
+    {
+      "id": "relayform",
+      "name": "Relayform",
+      "sprenBond": "hastespren",
+      "summary": "Ignore the Slowed condition, and you can spend 1 focus to gain an advantage on an Agility, Stealth, or Thievery test.",
+      "attributeBonuses": {"SPEED": 2},
+      "grantedByTalentId": "forms_of_expansion",
+      "voidform": true,
+      "page": 36
+    },
+    {
+      "id": "decayform",
+      "name": "Decayform",
+      "sprenBond": "blightspren",
+      "summary": "Gain Decaying Touch: spend 1 focus or 1 Investiture to stop a character you touch from recovering health or focus before they do so (any resources they already spent stay spent).",
+      "attributeBonuses": {"WILLPOWER": 2},
+      "grantedByTalentId": "forms_of_mystery",
+      "voidform": true,
+      "page": 37
+    },
+    {
+      "id": "nightform",
+      "name": "Nightform",
+      "sprenBond": "nightspren",
+      "summary": "Your maximum and current focus both increase by 2 while in this form. You also gain Intervening Premonitions (preroll two d20s at the start of each session; substitute one for a sensed character's roll after seeing it but before its effects resolve, losing that number once used) and occasional GM-granted glimpses of the future (Sporadic Premonitions).",
+      "attributeBonuses": {"AWARENESS": 1, "INTELLECT": 1},
+      "grantedByTalentId": "forms_of_mystery",
+      "voidform": true,
+      "page": 37
+    }
+  ]
+}

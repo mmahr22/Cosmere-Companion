@@ -45,6 +45,8 @@ data class PlayerCharacterEntity(
     val currentFocus: Int,
     val currentInvestiture: Int,
     val maxInvestiture: Int,
+    val unlockedFormIds: List<String>,
+    val currentFormId: String?,
 ) {
     companion object {
         const val CURRENT_CHARACTER_ID = 0
@@ -65,6 +67,8 @@ fun PlayerCharacter.toEntity(): PlayerCharacterEntity = PlayerCharacterEntity(
     currentFocus = currentFocus,
     currentInvestiture = currentInvestiture,
     maxInvestiture = maxInvestiture,
+    unlockedFormIds = unlockedFormIds,
+    currentFormId = currentFormId,
 )
 
 fun PlayerCharacterEntity.toDomain(): PlayerCharacter = PlayerCharacter(
@@ -83,4 +87,6 @@ fun PlayerCharacterEntity.toDomain(): PlayerCharacter = PlayerCharacter(
     currentFocus = currentFocus,
     currentInvestiture = currentInvestiture,
     maxInvestiture = maxInvestiture,
+    unlockedFormIds = unlockedFormIds,
+    currentFormId = currentFormId,
 )

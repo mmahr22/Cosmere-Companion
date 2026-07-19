@@ -421,6 +421,11 @@ private fun CharacterSheet(
             Text("${rp.name} · Bonded to ${rp.sprenType ?: "a spren"}", style = MaterialTheme.typography.bodyMedium)
         }
 
+        if (character.ancestryId == "singer") {
+            HorizontalDivider()
+            SingerFormsSection(character = character, onUpdate = onUpdate)
+        }
+
         HorizontalDivider()
 
         ResourceTracker(
@@ -523,6 +528,82 @@ private fun CharacterSheet(
 
         OutlinedButton(onClick = onReset, modifier = Modifier.fillMaxWidth()) {
             Text("New Character")
+        }
+    }
+}
+
+@Composable
+private fun SingerFormsSection(character: PlayerCharacter, onUpdate: (PlayerCharacter) -> Unit) {
+    val allForms = remember { RulesRepository.singerForms }
+    val currentForm = remember(character.currentFormId) {
+        character.currentFormId?.let(RulesRepository::singerFormById)
+    }
+
+    Text("Forms", style = MaterialTheme.typography.titleMedium)
+
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            if (currentForm != null) {
+                Text(
+                    "Current form: ${currentForm.name}" + if (currentForm.voidform) " (Voidspren)" else "",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                )
+                Text("Bonded to ${currentForm.sprenBond}", style = MaterialTheme.typography.bodySmall)
+                if (currentForm.attributeBonuses.isNotEmpty()) {
+                    Text(
+                        currentForm.attributeBonuses.entries.joinToString(", ") { (attrName, bonus) ->
+                            val abbreviation = Attribute.entries.find { it.name == attrName }?.abbreviation ?: attrName
+                            "$abbreviation +$bonus"
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+                Text(currentForm.summary, style = MaterialTheme.typography.bodySmall)
+            } else {
+                Text("No form active", style = MaterialTheme.typography.bodySmall)
+            }
+        }
+    }
+
+    Text("Change form", style = MaterialTheme.typography.labelLarge)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        character.availableFormIds.mapNotNull(RulesRepository::singerFormById).forEach { form ->
+            FilterChip(
+                selected = character.currentFormId == form.id,
+                onClick = {
+                    val newCurrent = if (character.currentFormId == form.id) null else form.id
+                    onUpdate(character.copy(currentFormId = newCurrent))
+                },
+                label = { Text(form.name) },
+            )
+        }
+    }
+
+    Text("Unlocked from Singer talents", style = MaterialTheme.typography.labelLarge)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        allForms.filter { it.grantedByTalentId != null }.forEach { form ->
+            val unlocked = form.id in character.unlockedFormIds
+            FilterChip(
+                selected = unlocked,
+                onClick = {
+                    val newUnlocked = if (unlocked) character.unlockedFormIds - form.id else character.unlockedFormIds + form.id
+                    val newCurrent = if (unlocked && character.currentFormId == form.id) null else character.currentFormId
+                    onUpdate(character.copy(unlockedFormIds = newUnlocked, currentFormId = newCurrent))
+                },
+                label = { Text(form.name) },
+            )
         }
     }
 }
