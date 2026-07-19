@@ -2,9 +2,9 @@ package com.cosmere.companion.app.ui
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.Casino
 import androidx.compose.material.icons.filled.Groups
-import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -30,7 +30,7 @@ private enum class TopLevelDestination(
 ) {
     Characters("characters", "Characters", Icons.Filled.Groups),
     Dice("dice", "Dice", Icons.Filled.Casino),
-    Reference("reference", "Reference", Icons.Filled.MenuBook),
+    Reference("reference", "Reference", Icons.AutoMirrored.Filled.MenuBook),
 }
 
 @Composable
