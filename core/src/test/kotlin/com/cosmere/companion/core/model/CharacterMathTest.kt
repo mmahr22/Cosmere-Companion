@@ -102,6 +102,25 @@ class CharacterMathTest {
     }
 
     @Test
+    fun `total talent points grow by 1 per level past the level 1 free key talent`() {
+        assertEquals(0, CharacterMath.totalTalentPoints(1))
+        assertEquals(1, CharacterMath.totalTalentPoints(2))
+        assertEquals(19, CharacterMath.totalTalentPoints(20))
+        // Level 21+ is a floor only (choice of skill rank or talent per level).
+        assertEquals(19, CharacterMath.totalTalentPoints(21))
+    }
+
+    @Test
+    fun `total talent points add ancestry bonus levels reached so far`() {
+        val human = listOf(1, 6, 11, 16, 21)
+        assertEquals(1, CharacterMath.totalTalentPoints(1, human))
+        assertEquals(7, CharacterMath.totalTalentPoints(6, human))
+        val singer = listOf(6, 11, 16, 21)
+        assertEquals(0, CharacterMath.totalTalentPoints(1, singer))
+        assertEquals(6, CharacterMath.totalTalentPoints(6, singer))
+    }
+
+    @Test
     fun `unverified movement anchors match worked examples`() {
         // Speed 3 -> 30 ft and Speed 5 -> 40 ft appear in printed examples.
         assertEquals(30, UnverifiedDerivedStats.movementFeet(3))

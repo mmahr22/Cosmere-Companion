@@ -53,6 +53,16 @@ import com.cosmere.companion.core.data.RulesRepository
  * feeds into a derived stat ([deflectValue]) today — deflect is the one
  * piece of gear math this app tracks outside of combat, since everything
  * else an item's traits do (damage, special actions) only matters mid-fight.
+ *
+ * [purchasedTalentIds] are the ids of every talent this character has
+ * actually taken, including the free heroic/Radiant/ancestry key talents
+ * auto-granted when those paths are chosen (unlike [unlockedFormIds] above,
+ * which predates this feature and remains its own direct toggle rather than
+ * being derived from Singer-tree talent purchases). [bonusTalentPoints]
+ * mirrors [bonusAttributePoints]/[bonusSkillPoints] for ad-hoc GM grants.
+ * [spokenIdeal] is derived, not stored: the highest [Talent.grantsIdeal]
+ * among purchased talents belonging to [radiantPathId]'s tree, or 0 if the
+ * character isn't (yet) Radiant.
  */
 data class PlayerCharacter(
     // 0 means "not yet persisted" — Room assigns a real autoGenerate id on first save.
@@ -80,6 +90,8 @@ data class PlayerCharacter(
     val bonusSkillPoints: Int = 0,
     val notes: String = "",
     val activeConditions: Map<String, Int> = emptyMap(),
+    val purchasedTalentIds: List<String> = emptyList(),
+    val bonusTalentPoints: Int = 0,
 ) {
     fun attribute(attribute: Attribute): Int = attributes[attribute] ?: 0
 
@@ -116,4 +128,21 @@ data class PlayerCharacter(
     /** Deflect value from the currently worn armor, or 0 if none is equipped. */
     val deflectValue: Int
         get() = equippedArmorId?.let { RulesRepository.itemById(it)?.deflectValue } ?: 0
+
+    /** Talent-point budget for [level] (see [CharacterMath.totalTalentPoints]), plus any [bonusTalentPoints]. */
+    val totalTalentPoints: Int
+        get() {
+            val bonusLevels = ancestryId?.let { RulesRepository.ancestryById(it)?.bonusTalentLevels } ?: emptyList()
+            return CharacterMath.totalTalentPoints(level, bonusLevels) + bonusTalentPoints
+        }
+
+    /** The highest Ideal spoken so far, derived from purchased Radiant-tree talents; 0 if not (yet) Radiant. */
+    val spokenIdeal: Int
+        get() {
+            val pathId = radiantPathId ?: return 0
+            return purchasedTalentIds
+                .mapNotNull { RulesRepository.talentById(it) }
+                .filter { it.pathId == pathId }
+                .maxOfOrNull { it.grantsIdeal ?: 0 } ?: 0
+        }
 }

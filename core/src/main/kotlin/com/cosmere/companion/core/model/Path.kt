@@ -51,6 +51,16 @@ data class Talent(
     /** Radiant only: the Nth Ideal that must already be SPOKEN (goal completed). */
     val prerequisiteIdealSpoken: Int? = null,
     val prerequisiteOther: String? = null,
+    /**
+     * Radiant only: the Nth Ideal this talent itself represents swearing
+     * (e.g. `second_ideal_dustbringer` grants the goal to speak the Second
+     * Ideal, so `grantsIdeal = 2`). Distinct from [prerequisiteIdealSpoken],
+     * which some other talents use to require an Ideal without granting one.
+     * A character's currently-spoken Ideal is the highest [grantsIdeal] among
+     * their purchased talents for their Radiant path (1 by default once they
+     * have that path at all, via its key talent).
+     */
+    val grantsIdeal: Int? = null,
     val summary: String,
     val page: Int? = null,
 ) {

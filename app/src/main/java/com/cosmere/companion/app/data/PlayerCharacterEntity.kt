@@ -50,6 +50,8 @@ data class PlayerCharacterEntity(
     val bonusSkillPoints: Int,
     val notes: String,
     val activeConditions: Map<String, Int>,
+    val purchasedTalentIds: List<String>,
+    val bonusTalentPoints: Int,
 )
 
 fun PlayerCharacter.toEntity(): PlayerCharacterEntity = PlayerCharacterEntity(
@@ -77,6 +79,8 @@ fun PlayerCharacter.toEntity(): PlayerCharacterEntity = PlayerCharacterEntity(
     bonusSkillPoints = bonusSkillPoints,
     notes = notes,
     activeConditions = activeConditions,
+    purchasedTalentIds = purchasedTalentIds,
+    bonusTalentPoints = bonusTalentPoints,
 )
 
 fun PlayerCharacterEntity.toDomain(): PlayerCharacter = PlayerCharacter(
@@ -106,4 +110,6 @@ fun PlayerCharacterEntity.toDomain(): PlayerCharacter = PlayerCharacter(
     bonusSkillPoints = bonusSkillPoints,
     notes = notes,
     activeConditions = activeConditions,
+    purchasedTalentIds = purchasedTalentIds,
+    bonusTalentPoints = bonusTalentPoints,
 )

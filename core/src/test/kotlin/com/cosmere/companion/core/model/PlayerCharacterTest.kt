@@ -150,4 +150,36 @@ class PlayerCharacterTest {
         assertEquals(14, rewarded.totalAttributePoints)
         assertEquals(8, rewarded.totalSkillRanks)
     }
+
+    @Test
+    fun `spoken ideal is zero without a radiant path and derives from purchased ideal talents otherwise`() {
+        val nonRadiant = PlayerCharacter(name = "Kaladin", attributes = attributes, heroicPathId = "warrior")
+        assertEquals(0, nonRadiant.spokenIdeal)
+
+        val firstIdeal = nonRadiant.copy(
+            radiantPathId = "windrunner",
+            purchasedTalentIds = listOf("first_ideal_windrunner"),
+        )
+        assertEquals(1, firstIdeal.spokenIdeal)
+
+        val thirdIdeal = firstIdeal.copy(
+            purchasedTalentIds = listOf("first_ideal_windrunner", "second_ideal_windrunner", "third_ideal_windrunner"),
+        )
+        assertEquals(3, thirdIdeal.spokenIdeal)
+    }
+
+    @Test
+    fun `total talent points use the character's ancestry bonus levels, plus any GM bonus`() {
+        val human = PlayerCharacter(
+            name = "Kaladin", ancestryId = "human", attributes = attributes, heroicPathId = "warrior", level = 6,
+        )
+        val singer = PlayerCharacter(
+            name = "Rlain", ancestryId = "singer", attributes = attributes, heroicPathId = "warrior", level = 6,
+        )
+        // Humans get a bonus pick at level 1; singers' level-1 pick is the forced Change Form key talent instead.
+        assertEquals(human.totalTalentPoints, singer.totalTalentPoints + 1)
+
+        val bonused = human.copy(bonusTalentPoints = 2)
+        assertEquals(human.totalTalentPoints + 2, bonused.totalTalentPoints)
+    }
 }

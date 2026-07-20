@@ -94,6 +94,7 @@ import com.cosmere.companion.core.model.Item
 import com.cosmere.companion.core.model.ItemType
 import com.cosmere.companion.core.model.PlayerCharacter
 import com.cosmere.companion.core.model.Skill
+import com.cosmere.companion.core.model.Talent
 import java.io.File
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -339,6 +340,14 @@ private fun pointsSuffix(remaining: Int): String = when {
     else -> ""
 }
 
+private fun idealOrdinal(ideal: Int): String = when (ideal) {
+    1 -> "First"
+    2 -> "Second"
+    3 -> "Third"
+    4 -> "Fourth"
+    else -> "No"
+}
+
 /** A tappable name that jumps to the matching entry in the Reference tab. */
 @Composable
 private fun SheetLink(text: String, onClick: () -> Unit) {
@@ -581,6 +590,7 @@ private fun CharacterCreationForm(onCreate: (PlayerCharacter) -> Unit) {
                 if (currentStep == CreationStep.REVIEW) {
                     Button(
                         onClick = {
+                            val ancestry = draft.ancestryId?.let { RulesRepository.ancestryById(it) }
                             onCreate(
                                 PlayerCharacter(
                                     name = draft.name.trim(),
@@ -591,6 +601,11 @@ private fun CharacterCreationForm(onCreate: (PlayerCharacter) -> Unit) {
                                     specialty = draft.specialty,
                                     radiantPathId = draft.radiantPathId,
                                     skillRanks = draft.skillRanks,
+                                    purchasedTalentIds = listOfNotNull(
+                                        heroicPath?.keyTalentId,
+                                        radiantPath?.keyTalentId,
+                                        ancestry?.keyTalentId,
+                                    ),
                                 ),
                             )
                         },
@@ -1165,7 +1180,10 @@ private fun CharacterSheet(
         radiantPath?.let { rp ->
             Row(verticalAlignment = Alignment.CenterVertically) {
                 SheetLink(rp.name, onClick = { onOpenReference(pathReferenceKey(rp.id)) })
-                Text(" · Bonded to ${rp.sprenType ?: "a spren"}", style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    " · Bonded to ${rp.sprenType ?: "a spren"} · ${idealOrdinal(character.spokenIdeal)} Ideal",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
             }
         }
 
@@ -1348,6 +1366,15 @@ private fun CharacterSheet(
         }
 
         HorizontalDivider()
+        TalentsSection(
+            character = character,
+            heroicPath = heroicPath,
+            radiantPath = radiantPath,
+            onUpdate = onUpdate,
+            onOpenReference = onOpenReference,
+        )
+
+        HorizontalDivider()
         InventorySection(character = character, onUpdate = onUpdate)
 
         HorizontalDivider()
@@ -1466,6 +1493,111 @@ private fun ConditionsSection(
             }
         }
     }
+}
+
+@Composable
+private fun TalentsSection(
+    character: PlayerCharacter,
+    heroicPath: GamePath?,
+    radiantPath: GamePath?,
+    onUpdate: (PlayerCharacter) -> Unit,
+    onOpenReference: (String) -> Unit,
+) {
+    val ancestry = remember(character.ancestryId) { character.ancestryId?.let { RulesRepository.ancestryById(it) } }
+    val freeTalentIds = remember(heroicPath, radiantPath, ancestry) {
+        listOfNotNull(heroicPath?.keyTalentId, radiantPath?.keyTalentId, ancestry?.keyTalentId)
+    }
+    val spent = character.purchasedTalentIds.count { it !in freeTalentIds }
+    val remaining = character.totalTalentPoints - spent
+
+    val accessiblePathIds = remember(heroicPath, radiantPath, ancestry) {
+        listOfNotNull(heroicPath?.id, radiantPath?.id, ancestry?.id)
+    }
+    val purchasedTalents = remember(character.purchasedTalentIds) {
+        character.purchasedTalentIds.mapNotNull { RulesRepository.talentById(it) }.sortedBy { it.name }
+    }
+    val available = remember(character.purchasedTalentIds, accessiblePathIds, character.skillRanks, character.level) {
+        accessiblePathIds
+            .flatMap { RulesRepository.talentsForPath(it) }
+            .filter { it.id !in character.purchasedTalentIds && talentPrerequisitesMet(it, character) }
+            .sortedBy { it.name }
+    }
+    var addMenuExpanded by remember { mutableStateOf(false) }
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text("Talents" + pointsSuffix(remaining), style = MaterialTheme.typography.titleMedium)
+        Box {
+            IconButton(onClick = { addMenuExpanded = true }, enabled = remaining > 0) {
+                Icon(Icons.Filled.Add, contentDescription = "Add talent")
+            }
+            DropdownMenu(expanded = addMenuExpanded, onDismissRequest = { addMenuExpanded = false }) {
+                if (available.isEmpty()) {
+                    DropdownMenuItem(text = { Text("No eligible talents") }, onClick = {}, enabled = false)
+                }
+                available.forEach { talent ->
+                    DropdownMenuItem(
+                        text = { Text(talent.name) },
+                        onClick = {
+                            addMenuExpanded = false
+                            onUpdate(character.copy(purchasedTalentIds = character.purchasedTalentIds + talent.id))
+                        },
+                    )
+                }
+            }
+        }
+    }
+    GmBonusRow(
+        value = character.bonusTalentPoints,
+        onChange = { onUpdate(character.copy(bonusTalentPoints = it)) },
+    )
+
+    if (purchasedTalents.isEmpty()) {
+        Text(
+            "No talents yet.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    } else {
+        purchasedTalents.forEach { talent ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    SheetLink(talent.name, onClick = { onOpenReference(talentReferenceKey(talent.id)) })
+                    Text(
+                        talent.specialty ?: (RulesRepository.pathById(talent.pathId)?.name ?: talent.pathId),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                if (talent.id !in freeTalentIds) {
+                    IconButton(
+                        onClick = {
+                            onUpdate(character.copy(purchasedTalentIds = character.purchasedTalentIds - talent.id))
+                        },
+                    ) { Icon(Icons.Filled.Close, contentDescription = "Remove ${talent.name}") }
+                }
+            }
+        }
+    }
+}
+
+/** Checks the prerequisites the app can verify automatically; [Talent.prerequisiteOther] is left to the player/GM to judge. */
+private fun talentPrerequisitesMet(talent: Talent, character: PlayerCharacter): Boolean {
+    val talentsOk = when (talent.prerequisiteTalentsMode) {
+        "any" -> talent.prerequisiteTalents.isEmpty() || talent.prerequisiteTalents.any { it in character.purchasedTalentIds }
+        else -> talent.prerequisiteTalents.all { it in character.purchasedTalentIds }
+    }
+    val skillsOk = talent.prerequisiteSkills.all { (skillId, rank) -> character.skillRank(skillId) >= rank }
+    val levelOk = talent.prerequisiteLevel?.let { character.level >= it } ?: true
+    val idealOk = talent.prerequisiteIdealSpoken?.let { character.spokenIdeal >= it } ?: true
+    return talentsOk && skillsOk && levelOk && idealOk
 }
 
 @Composable

@@ -62,8 +62,20 @@ object CharacterMath {
     /** Levels that grant a +1 attribute increase (max 5 per attribute). */
     val ATTRIBUTE_INCREASE_LEVELS = setOf(3, 6, 9, 12, 15, 18)
 
-    /** Levels that grant an ancestry bonus talent (start of each tier). */
-    val ANCESTRY_TALENT_LEVELS = setOf(1, 6, 11, 16, 21)
+    /**
+     * Talent-point budget for [level], from the "Gain a Talent" advancement
+     * step: one talent per level from 2 through 20 (level 1's only talent is
+     * the free heroic/Radiant/ancestry key talent, granted separately and
+     * not counted against this budget), plus one bonus pick per level in
+     * [ancestryBonusTalentLevels] reached so far (see [Ancestry.bonusTalentLevels],
+     * which varies by ancestry — e.g. Singers don't get theirs until level 6,
+     * since their level-1 pick is the forced Change Form key talent instead).
+     * Levels 21+ grant a shared "skill rank OR talent" choice (see
+     * [totalSkillRanks]'s doc), so — matching that function's convention —
+     * only the guaranteed floor is counted here.
+     */
+    fun totalTalentPoints(level: Int, ancestryBonusTalentLevels: List<Int> = emptyList()): Int =
+        minOf(level - 1, 19) + ancestryBonusTalentLevels.count { it <= level }
 
     /** Total skill ranks a character should have at [level] (4 at creation +1 path start, +2/level). */
     fun totalSkillRanks(level: Int): Int =

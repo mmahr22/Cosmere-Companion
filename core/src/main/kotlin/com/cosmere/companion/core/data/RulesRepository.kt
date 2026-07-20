@@ -77,6 +77,8 @@ object RulesRepository {
 
     fun talentsForPath(pathId: String): List<Talent> = talents.filter { it.pathId == pathId }
 
+    fun talentById(id: String): Talent? = talents.firstOrNull { it.id == id }
+
     fun surgeById(id: String): SurgeEntry? = surges.firstOrNull { it.id == id }
 
     fun ancestryById(id: String): Ancestry? = ancestries.firstOrNull { it.id == id }

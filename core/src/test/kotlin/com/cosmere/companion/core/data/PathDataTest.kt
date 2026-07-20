@@ -80,6 +80,26 @@ class PathDataTest {
     }
 
     @Test
+    fun `every radiant path has exactly one talent granting each Ideal 1 through 4`() {
+        RulesRepository.paths.filter { it.type == "radiant" }.forEach { path ->
+            val talents = RulesRepository.talentsForPath(path.id)
+            (1..4).forEach { ideal ->
+                val grantors = talents.filter { it.grantsIdeal == ideal }
+                assertEquals(1, grantors.size, "talents granting Ideal $ideal in ${path.id}")
+            }
+            // The First Ideal talent is always the path's key talent.
+            assertEquals(path.keyTalentId, talents.first { it.grantsIdeal == 1 }.id)
+        }
+        // No non-radiant path talent should claim to grant an Ideal.
+        RulesRepository.paths.filter { it.type != "radiant" }.forEach { path ->
+            assertTrue(
+                RulesRepository.talentsForPath(path.id).none { it.grantsIdeal != null },
+                "${path.id} is not radiant but has an Ideal-granting talent",
+            )
+        }
+    }
+
+    @Test
     fun `activation strings all map to a type`() {
         RulesRepository.talents.forEach { talent ->
             // Throws if unmappable; PASSIVE is the explicit fallback only for "passive".

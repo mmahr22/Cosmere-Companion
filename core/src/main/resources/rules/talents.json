@@ -2114,6 +2114,7 @@
       "prerequisiteTalents": [],
       "prerequisiteLevel": 2,
       "prerequisiteOther": null,
+      "grantsIdeal": 1,
       "summary": "Begin bonding an ashspren. Gain Investiture (maximum 2 + your higher of Awareness or Presence) and the Breathe Stormlight, Enhance, and Regenerate actions. Grants the goal 'Speak the First Ideal'; completing it makes you Empowered for the scene and grants the Abrasion and Division surge skills at 1 rank each.",
       "page": 135
     },
@@ -2130,6 +2131,7 @@
       "prerequisiteLevel": 4,
       "prerequisiteIdealSpoken": 1,
       "prerequisiteOther": null,
+      "grantsIdeal": 2,
       "summary": "Grants the goal 'Speak the Second Ideal'; completing it makes you Empowered for the scene and lets you use Enhance as a free action without spending Investiture.",
       "page": 137
     },
@@ -2146,6 +2148,7 @@
       "prerequisiteLevel": 8,
       "prerequisiteIdealSpoken": 2,
       "prerequisiteOther": null,
+      "grantsIdeal": 3,
       "summary": "Grants the goal 'Speak the Third Ideal'; completing it makes you Empowered for the scene and lets you manifest your spren as a Radiant Shardblade.",
       "page": 137
     },
@@ -2162,6 +2165,7 @@
       "prerequisiteLevel": 13,
       "prerequisiteIdealSpoken": 3,
       "prerequisiteOther": null,
+      "grantsIdeal": 4,
       "summary": "Grants the goal 'Speak the Fourth Ideal'; completing it makes you Empowered for the scene and lets you call a swarm of flamespren as Radiant Shardplate.",
       "page": 135
     },
@@ -2250,6 +2254,7 @@
       "prerequisiteTalents": [],
       "prerequisiteLevel": 2,
       "prerequisiteOther": null,
+      "grantsIdeal": 1,
       "summary": "Begin bonding a cultivationspren. Gain Investiture (maximum 2 + your higher of Awareness or Presence) and the Breathe Stormlight, Enhance, and Regenerate actions. Grants the goal 'Speak the First Ideal'; completing it makes you Empowered for the scene and grants the Abrasion and Progression surge skills at 1 rank each.",
       "page": 143
     },
@@ -2266,6 +2271,7 @@
       "prerequisiteLevel": 4,
       "prerequisiteIdealSpoken": 1,
       "prerequisiteOther": null,
+      "grantsIdeal": 2,
       "summary": "Grants the goal 'Speak the Second Ideal'; completing it makes you Empowered for the scene and lets you use Enhance as a free action without spending Investiture.",
       "page": 144
     },
@@ -2282,6 +2288,7 @@
       "prerequisiteLevel": 8,
       "prerequisiteIdealSpoken": 2,
       "prerequisiteOther": null,
+      "grantsIdeal": 3,
       "summary": "Grants the goal 'Speak the Third Ideal'; completing it makes you Empowered for the scene and lets you manifest your spren as a Radiant Shardblade.",
       "page": 144
     },
@@ -2298,6 +2305,7 @@
       "prerequisiteLevel": 13,
       "prerequisiteIdealSpoken": 3,
       "prerequisiteOther": null,
+      "grantsIdeal": 4,
       "summary": "Grants the goal 'Speak the Fourth Ideal'; completing it makes you Empowered for the scene and lets you manifest Radiant Shardplate.",
       "page": 144
     },
@@ -2386,6 +2394,7 @@
       "prerequisiteTalents": [],
       "prerequisiteLevel": 2,
       "prerequisiteOther": null,
+      "grantsIdeal": 1,
       "summary": "Begin bonding an inkspren. Gain Investiture (maximum 2 + your higher of Awareness or Presence) and the Breathe Stormlight, Enhance, and Regenerate actions. Grants the goal 'Speak the First Ideal'; completing it makes you Empowered for the scene and grants the Transformation and Transportation surge skills at 1 rank each.",
       "page": 151
     },
@@ -2402,6 +2411,7 @@
       "prerequisiteLevel": 4,
       "prerequisiteIdealSpoken": 1,
       "prerequisiteOther": null,
+      "grantsIdeal": 2,
       "summary": "Grants the goal 'Speak the Second Ideal'; completing it makes you Empowered for the scene and lets you use Enhance as a free action without spending Investiture.",
       "page": 152
     },
@@ -2418,6 +2428,7 @@
       "prerequisiteLevel": 8,
       "prerequisiteIdealSpoken": 2,
       "prerequisiteOther": null,
+      "grantsIdeal": 3,
       "summary": "Grants the goal 'Speak the Third Ideal'; completing it makes you Empowered for the scene and lets you manifest your spren as a Radiant Shardblade.",
       "page": 152
     },
@@ -2434,6 +2445,7 @@
       "prerequisiteLevel": 13,
       "prerequisiteIdealSpoken": 3,
       "prerequisiteOther": null,
+      "grantsIdeal": 4,
       "summary": "Grants the goal 'Speak the Fourth Ideal'; completing it makes you Empowered for the scene and lets you call a swarm of logicspren as Radiant Shardplate.",
       "page": 151
     },
@@ -2522,6 +2534,7 @@
       "prerequisiteTalents": [],
       "prerequisiteLevel": 2,
       "prerequisiteOther": null,
+      "grantsIdeal": 1,
       "summary": "Begin bonding a Cryptic. Gain Investiture (maximum 2 + your higher of Awareness or Presence) and the Breathe Stormlight, Enhance, and Regenerate actions. Grants the goal 'Speak the First Ideal'; completing it makes you Empowered for the scene and grants the Illumination and Transformation surge skills at 1 rank each.",
       "page": 159
     },
@@ -2538,6 +2551,7 @@
       "prerequisiteLevel": 4,
       "prerequisiteIdealSpoken": 1,
       "prerequisiteOther": null,
+      "grantsIdeal": 2,
       "summary": "Grants the goal 'Speak the Second Ideal'; completing it makes you Empowered for the scene and lets you use Enhance as a free action without spending Investiture.",
       "page": 160
     },
@@ -2554,6 +2568,7 @@
       "prerequisiteLevel": 8,
       "prerequisiteIdealSpoken": 2,
       "prerequisiteOther": null,
+      "grantsIdeal": 3,
       "summary": "Grants the goal 'Speak the Third Ideal'; completing it makes you Empowered for the scene and lets you manifest your spren as a Radiant Shardblade.",
       "page": 160
     },
@@ -2570,6 +2585,7 @@
       "prerequisiteLevel": 13,
       "prerequisiteIdealSpoken": 3,
       "prerequisiteOther": null,
+      "grantsIdeal": 4,
       "summary": "Grants the goal 'Speak the Fourth Ideal'; completing it makes you Empowered for the scene and lets you manifest Radiant Shardplate.",
       "page": 160
     },
@@ -2659,6 +2675,7 @@
       "prerequisiteTalents": [],
       "prerequisiteLevel": 2,
       "prerequisiteOther": null,
+      "grantsIdeal": 1,
       "summary": "Begin bonding a highspren. Gain Investiture (maximum 2 + your higher of Awareness or Presence) and the Breathe Stormlight, Enhance, and Regenerate actions. Grants the goal 'Speak the First Ideal'; completing it makes you Empowered for the scene and grants the Division and Gravitation surge skills at 1 rank each.",
       "page": 167
     },
@@ -2675,6 +2692,7 @@
       "prerequisiteLevel": 4,
       "prerequisiteIdealSpoken": 1,
       "prerequisiteOther": null,
+      "grantsIdeal": 2,
       "summary": "Grants the goal 'Speak the Second Ideal'; completing it makes you Empowered for the scene and lets you use Enhance as a free action without spending Investiture.",
       "page": 168
     },
@@ -2691,6 +2709,7 @@
       "prerequisiteLevel": 8,
       "prerequisiteIdealSpoken": 2,
       "prerequisiteOther": null,
+      "grantsIdeal": 3,
       "summary": "Grants the goal 'Speak the Third Ideal'; completing it makes you Empowered for the scene and lets you manifest your spren as a Radiant Shardblade.",
       "page": 168
     },
@@ -2707,6 +2726,7 @@
       "prerequisiteLevel": 13,
       "prerequisiteIdealSpoken": 3,
       "prerequisiteOther": null,
+      "grantsIdeal": 4,
       "summary": "Grants the goal 'Speak the Fourth Ideal'; completing it makes you Empowered for the scene and lets you manifest Radiant Shardplate.",
       "page": 168
     },
@@ -2795,6 +2815,7 @@
       "prerequisiteTalents": [],
       "prerequisiteLevel": 2,
       "prerequisiteOther": null,
+      "grantsIdeal": 1,
       "summary": "Begin bonding a peakspren. Gain Investiture (maximum 2 + your higher of Awareness or Presence) and the Breathe Stormlight, Enhance, and Regenerate actions. Grants the goal 'Speak the First Ideal'; completing it makes you Empowered for the scene and grants the Cohesion and Tension surge skills at 1 rank each.",
       "page": 175
     },
@@ -2811,6 +2832,7 @@
       "prerequisiteLevel": 4,
       "prerequisiteIdealSpoken": 1,
       "prerequisiteOther": null,
+      "grantsIdeal": 2,
       "summary": "Grants the goal 'Speak the Second Ideal'; completing it makes you Empowered for the scene and lets you use Enhance as a free action without spending Investiture.",
       "page": 176
     },
@@ -2827,6 +2849,7 @@
       "prerequisiteLevel": 8,
       "prerequisiteIdealSpoken": 2,
       "prerequisiteOther": null,
+      "grantsIdeal": 3,
       "summary": "Grants the goal 'Speak the Third Ideal'; completing it makes you Empowered for the scene and lets you manifest your spren as a Radiant Shardblade.",
       "page": 176
     },
@@ -2843,6 +2866,7 @@
       "prerequisiteLevel": 13,
       "prerequisiteIdealSpoken": 3,
       "prerequisiteOther": null,
+      "grantsIdeal": 4,
       "summary": "Grants the goal 'Speak the Fourth Ideal'; completing it makes you Empowered for the scene and lets you manifest Radiant Shardplate.",
       "page": 176
     },
@@ -2931,6 +2955,7 @@
       "prerequisiteTalents": [],
       "prerequisiteLevel": 2,
       "prerequisiteOther": null,
+      "grantsIdeal": 1,
       "summary": "Begin bonding a mistspren. Gain Investiture (maximum 2 + your higher of Awareness or Presence) and the Breathe Stormlight, Enhance, and Regenerate actions. Grants the goal 'Speak the First Ideal'; completing it makes you Empowered for the scene and grants the Illumination and Progression surge skills at 1 rank each.",
       "page": 183
     },
@@ -2947,6 +2972,7 @@
       "prerequisiteLevel": 4,
       "prerequisiteIdealSpoken": 1,
       "prerequisiteOther": null,
+      "grantsIdeal": 2,
       "summary": "Grants the goal 'Speak the Second Ideal'; completing it makes you Empowered for the scene and lets you use Enhance as a free action without spending Investiture.",
       "page": 184
     },
@@ -2963,6 +2989,7 @@
       "prerequisiteLevel": 8,
       "prerequisiteIdealSpoken": 2,
       "prerequisiteOther": null,
+      "grantsIdeal": 3,
       "summary": "Grants the goal 'Speak the Third Ideal'; completing it makes you Empowered for the scene and lets you manifest your spren as a Radiant Shardblade.",
       "page": 184
     },
@@ -2979,6 +3006,7 @@
       "prerequisiteLevel": 13,
       "prerequisiteIdealSpoken": 3,
       "prerequisiteOther": null,
+      "grantsIdeal": 4,
       "summary": "Grants the goal 'Speak the Fourth Ideal'; completing it makes you Empowered for the scene and lets you manifest Radiant Shardplate.",
       "page": 184
     },
@@ -3067,6 +3095,7 @@
       "prerequisiteTalents": [],
       "prerequisiteLevel": 2,
       "prerequisiteOther": null,
+      "grantsIdeal": 1,
       "summary": "Begin bonding a lightspren. Gain Investiture (maximum 2 + your higher of Awareness or Presence) and the Breathe Stormlight, Enhance, and Regenerate actions. Grants the goal 'Speak the First Ideal'; completing it makes you Empowered for the scene and grants the Cohesion and Transportation surge skills at 1 rank each.",
       "page": 193
     },
@@ -3083,6 +3112,7 @@
       "prerequisiteLevel": 4,
       "prerequisiteIdealSpoken": 1,
       "prerequisiteOther": null,
+      "grantsIdeal": 2,
       "summary": "Grants the goal 'Speak the Second Ideal'; completing it makes you Empowered for the scene and lets you use Enhance as a free action without spending Investiture.",
       "page": 194
     },
@@ -3099,6 +3129,7 @@
       "prerequisiteLevel": 8,
       "prerequisiteIdealSpoken": 2,
       "prerequisiteOther": null,
+      "grantsIdeal": 3,
       "summary": "Grants the goal 'Speak the Third Ideal'; completing it makes you Empowered for the scene and lets you manifest your spren as a Radiant Shardblade.",
       "page": 194
     },
@@ -3115,6 +3146,7 @@
       "prerequisiteLevel": 13,
       "prerequisiteIdealSpoken": 3,
       "prerequisiteOther": null,
+      "grantsIdeal": 4,
       "summary": "Grants the goal 'Speak the Fourth Ideal'; completing it makes you Empowered for the scene and lets you manifest Radiant Shardplate.",
       "page": 194
     },
@@ -3203,6 +3235,7 @@
       "prerequisiteTalents": [],
       "prerequisiteLevel": 2,
       "prerequisiteOther": null,
+      "grantsIdeal": 1,
       "summary": "Begin bonding an honorspren. Gain Investiture (maximum 2 + your higher of Awareness or Presence) and the Breathe Stormlight, Enhance, and Regenerate actions. Grants the goal 'Speak the First Ideal'; completing it makes you Empowered for the scene and grants the Adhesion and Gravitation surge skills at 1 rank each.",
       "page": 201
     },
@@ -3219,6 +3252,7 @@
       "prerequisiteLevel": 4,
       "prerequisiteIdealSpoken": 1,
       "prerequisiteOther": null,
+      "grantsIdeal": 2,
       "summary": "Grants the goal 'Speak the Second Ideal'; completing it makes you Empowered for the scene and lets you use Enhance as a free action without spending Investiture.",
       "page": 202
     },
@@ -3235,6 +3269,7 @@
       "prerequisiteLevel": 8,
       "prerequisiteIdealSpoken": 2,
       "prerequisiteOther": null,
+      "grantsIdeal": 3,
       "summary": "Grants the goal 'Speak the Third Ideal'; completing it makes you Empowered for the scene and lets you manifest your spren as a Radiant Shardblade.",
       "page": 202
     },
@@ -3251,6 +3286,7 @@
       "prerequisiteLevel": 13,
       "prerequisiteIdealSpoken": 3,
       "prerequisiteOther": null,
+      "grantsIdeal": 4,
       "summary": "Grants the goal 'Speak the Fourth Ideal'; completing it makes you Empowered for the scene and lets you manifest Radiant Shardplate.",
       "page": 202
     },
