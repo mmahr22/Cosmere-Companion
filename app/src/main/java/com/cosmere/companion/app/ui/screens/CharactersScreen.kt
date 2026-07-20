@@ -1,5 +1,9 @@
 package com.cosmere.companion.app.ui.screens
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,24 +14,31 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -38,6 +49,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -47,15 +59,22 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
+import com.cosmere.companion.app.data.saveAvatar
 import com.cosmere.companion.core.data.RulesRepository
 import com.cosmere.companion.core.model.Ancestry
 import com.cosmere.companion.core.model.Attribute
@@ -66,6 +85,7 @@ import com.cosmere.companion.core.model.Item
 import com.cosmere.companion.core.model.ItemType
 import com.cosmere.companion.core.model.PlayerCharacter
 import com.cosmere.companion.core.model.Skill
+import java.io.File
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -105,6 +125,7 @@ fun CharactersScreen(viewModel: CharacterViewModel = viewModel()) {
             characters = characters,
             onSelect = { openCharacterId = it.id },
             onCreateNew = { isCreating = true },
+            onDelete = viewModel::delete,
         )
     }
 }
@@ -114,7 +135,10 @@ private fun CharacterRosterScreen(
     characters: List<PlayerCharacter>,
     onSelect: (PlayerCharacter) -> Unit,
     onCreateNew: () -> Unit,
+    onDelete: (PlayerCharacter) -> Unit,
 ) {
+    var pendingDelete by remember { mutableStateOf<PlayerCharacter?>(null) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -154,26 +178,48 @@ private fun CharacterRosterScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 items(characters, key = { it.id }) { character ->
-                    CharacterRosterRow(character = character, onClick = { onSelect(character) })
+                    CharacterRosterRow(
+                        character = character,
+                        onClick = { onSelect(character) },
+                        onDeleteRequest = { pendingDelete = character },
+                    )
                 }
             }
         }
     }
+
+    pendingDelete?.let { character ->
+        DeleteCharacterDialog(
+            characterName = character.name,
+            onConfirm = {
+                onDelete(character)
+                pendingDelete = null
+            },
+            onDismiss = { pendingDelete = null },
+        )
+    }
 }
 
 @Composable
-private fun CharacterRosterRow(character: PlayerCharacter, onClick: () -> Unit) {
+private fun CharacterRosterRow(
+    character: PlayerCharacter,
+    onClick: () -> Unit,
+    onDeleteRequest: () -> Unit,
+) {
     val ancestry = remember(character.ancestryId) { character.ancestryId?.let(RulesRepository::ancestryById) }
     val heroicPath = remember(character.heroicPathId) { RulesRepository.pathById(character.heroicPathId) }
+    var menuExpanded by remember { mutableStateOf(false) }
 
     Card(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(start = 16.dp, top = 16.dp, bottom = 16.dp, end = 4.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            CharacterAvatar(avatarPath = character.avatarPath, name = character.name, size = 48.dp)
+            Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(character.name, style = MaterialTheme.typography.titleMedium)
                 val subtitle = buildString {
@@ -195,6 +241,81 @@ private fun CharacterRosterRow(character: PlayerCharacter, onClick: () -> Unit) 
             Text(
                 "${character.currentHealth}/${character.maxHealth} HP",
                 style = MaterialTheme.typography.bodySmall,
+            )
+            Box {
+                IconButton(onClick = { menuExpanded = true }) {
+                    Icon(Icons.Filled.MoreVert, contentDescription = "More options for ${character.name}")
+                }
+                DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
+                    DropdownMenuItem(
+                        text = { Text("Delete") },
+                        onClick = {
+                            menuExpanded = false
+                            onDeleteRequest()
+                        },
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DeleteCharacterDialog(characterName: String, onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Delete $characterName?") },
+        text = { Text("This can't be undone.") },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text("Delete", color = MaterialTheme.colorScheme.error)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancel") }
+        },
+    )
+}
+
+private val AVATAR_COLORS = listOf(
+    Color(0xFF6750A4), Color(0xFF386A20), Color(0xFFB3261E), Color(0xFF0061A4), Color(0xFF8B5000),
+)
+
+private fun avatarColorFor(name: String): Color = AVATAR_COLORS[(name.hashCode() and 0x7FFFFFFF) % AVATAR_COLORS.size]
+
+private fun initialsFor(name: String): String =
+    name.trim().split(" ").filter { it.isNotBlank() }.take(2).mapNotNull { it.firstOrNull()?.uppercaseChar() }.joinToString("")
+
+@Composable
+private fun CharacterAvatar(
+    avatarPath: String?,
+    name: String,
+    size: Dp,
+    modifier: Modifier = Modifier,
+) {
+    val file = remember(avatarPath) { avatarPath?.let(::File) }
+    if (file != null && file.exists()) {
+        AsyncImage(
+            model = file,
+            contentDescription = "$name's avatar",
+            contentScale = ContentScale.Crop,
+            modifier = modifier
+                .size(size)
+                .clip(CircleShape),
+        )
+    } else {
+        Box(
+            modifier = modifier
+                .size(size)
+                .clip(CircleShape)
+                .background(avatarColorFor(name)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                initialsFor(name),
+                color = Color.White,
+                style = if (size > 40.dp) MaterialTheme.typography.titleMedium else MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold,
             )
         }
     }
@@ -879,6 +1000,14 @@ private fun CharacterSheet(
         onUpdate(character.copy(skillRanks = character.skillRanks + (skillId to clamped)))
     }
 
+    val context = LocalContext.current
+    val pickAvatar = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        if (uri != null) {
+            val path = saveAvatar(context, character.id, uri, character.avatarPath)
+            onUpdate(character.copy(avatarPath = path))
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -890,6 +1019,32 @@ private fun CharacterSheet(
             IconButton(onClick = onBack) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back to characters")
             }
+            Box {
+                CharacterAvatar(
+                    avatarPath = character.avatarPath,
+                    name = character.name,
+                    size = 56.dp,
+                    modifier = Modifier.clickable {
+                        pickAvatar.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                    },
+                )
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .size(20.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        Icons.Filled.PhotoCamera,
+                        contentDescription = "Change avatar",
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.size(12.dp),
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.width(12.dp))
             Text(character.name, style = MaterialTheme.typography.headlineSmall)
         }
         if (ancestry != null || cultures.isNotEmpty()) {
@@ -1015,12 +1170,23 @@ private fun CharacterSheet(
         HorizontalDivider()
         InventorySection(character = character, onUpdate = onUpdate)
 
+        var showDeleteConfirm by remember { mutableStateOf(false) }
         OutlinedButton(
-            onClick = onDelete,
+            onClick = { showDeleteConfirm = true },
             colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text("Delete Character")
+        }
+        if (showDeleteConfirm) {
+            DeleteCharacterDialog(
+                characterName = character.name,
+                onConfirm = {
+                    showDeleteConfirm = false
+                    onDelete()
+                },
+                onDismiss = { showDeleteConfirm = false },
+            )
         }
     }
 }

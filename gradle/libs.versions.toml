@@ -10,6 +10,7 @@ coreKtx = "1.16.0"
 lifecycle = "2.9.0"
 navigationCompose = "2.9.0"
 room = "2.7.1"
+coil = "2.7.0"
 
 [libraries]
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
@@ -31,6 +32,8 @@ compose-material-icons-extended = { module = "androidx.compose.material:material
 room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
 room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
+
+coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

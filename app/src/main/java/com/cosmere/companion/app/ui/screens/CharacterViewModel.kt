@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.cosmere.companion.app.data.CompanionDatabase
+import com.cosmere.companion.app.data.deleteAvatar
 import com.cosmere.companion.app.data.toDomain
 import com.cosmere.companion.app.data.toEntity
 import com.cosmere.companion.core.model.PlayerCharacter
@@ -38,5 +39,6 @@ class CharacterViewModel(application: Application) : AndroidViewModel(applicatio
 
     fun delete(character: PlayerCharacter) {
         viewModelScope.launch { dao.delete(character.id) }
+        deleteAvatar(character.avatarPath)
     }
 }

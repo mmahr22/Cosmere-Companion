@@ -45,6 +45,7 @@ data class PlayerCharacterEntity(
     val inventory: Map<String, Int>,
     val equippedWeaponIds: List<String>,
     val equippedArmorId: String?,
+    val avatarPath: String?,
 )
 
 fun PlayerCharacter.toEntity(): PlayerCharacterEntity = PlayerCharacterEntity(
@@ -67,6 +68,7 @@ fun PlayerCharacter.toEntity(): PlayerCharacterEntity = PlayerCharacterEntity(
     inventory = inventory,
     equippedWeaponIds = equippedWeaponIds,
     equippedArmorId = equippedArmorId,
+    avatarPath = avatarPath,
 )
 
 fun PlayerCharacterEntity.toDomain(): PlayerCharacter = PlayerCharacter(
@@ -91,4 +93,5 @@ fun PlayerCharacterEntity.toDomain(): PlayerCharacter = PlayerCharacter(
     inventory = inventory,
     equippedWeaponIds = equippedWeaponIds,
     equippedArmorId = equippedArmorId,
+    avatarPath = avatarPath,
 )

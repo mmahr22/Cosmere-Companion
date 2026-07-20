@@ -60,6 +60,7 @@ data class PlayerCharacter(
     val inventory: Map<String, Int> = emptyMap(),
     val equippedWeaponIds: List<String> = emptyList(),
     val equippedArmorId: String? = null,
+    val avatarPath: String? = null,
 ) {
     fun attribute(attribute: Attribute): Int = attributes[attribute] ?: 0
 
