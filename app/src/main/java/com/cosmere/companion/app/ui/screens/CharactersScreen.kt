@@ -16,10 +16,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
@@ -318,41 +321,99 @@ private fun AncestryStep(draft: CharacterDraft, onChange: (CharacterDraft) -> Un
         "Culture (choose up to $MAX_CULTURES)",
         style = MaterialTheme.typography.titleMedium,
     )
-    Row(
+
+    var cultureListExpanded by remember { mutableStateOf(false) }
+    var expandedCultureId by remember { mutableStateOf<String?>(null) }
+
+    val availableCultures = remember(draft.ancestryId) {
+        RulesRepository.cultures.filter { !it.singerOnly || draft.ancestryId == "singer" }
+    }
+    val selectedCultureNames = remember(draft.cultureIds) {
+        draft.cultureIds.mapNotNull { id -> RulesRepository.cultures.firstOrNull { it.id == id }?.name }
+    }
+
+    Card(
         modifier = Modifier
             .fillMaxWidth()
-            .horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+            .clickable { cultureListExpanded = !cultureListExpanded },
     ) {
-        RulesRepository.cultures
-            .filter { !it.singerOnly || draft.ancestryId == "singer" }
-            .forEach { cultureOption ->
-                val selected = cultureOption.id in draft.cultureIds
-                FilterChip(
-                    selected = selected,
-                    onClick = {
-                        onChange(
-                            when {
-                                selected -> draft.copy(cultureIds = draft.cultureIds - cultureOption.id)
-                                draft.cultureIds.size < MAX_CULTURES ->
-                                    draft.copy(cultureIds = draft.cultureIds + cultureOption.id)
-                                else -> draft
-                            },
-                        )
-                    },
-                    label = { Text(cultureOption.name) },
-                )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                if (selectedCultureNames.isEmpty()) "Select cultures" else selectedCultureNames.joinToString(", "),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            Icon(
+                imageVector = if (cultureListExpanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                contentDescription = if (cultureListExpanded) "Collapse culture list" else "Expand culture list",
+            )
+        }
+    }
+
+    if (cultureListExpanded) {
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            availableCultures.forEach { culture ->
+                val selected = culture.id in draft.cultureIds
+                val infoExpanded = expandedCultureId == culture.id
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (selected) {
+                            MaterialTheme.colorScheme.secondaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.surfaceVariant
+                        },
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { expandedCultureId = if (infoExpanded) null else culture.id },
+                ) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Checkbox(
+                                    checked = selected,
+                                    onCheckedChange = {
+                                        onChange(
+                                            when {
+                                                selected -> draft.copy(cultureIds = draft.cultureIds - culture.id)
+                                                draft.cultureIds.size < MAX_CULTURES ->
+                                                    draft.copy(cultureIds = draft.cultureIds + culture.id)
+                                                else -> draft
+                                            },
+                                        )
+                                    },
+                                )
+                                Text(
+                                    culture.name,
+                                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+                                )
+                            }
+                            Icon(
+                                imageVector = if (infoExpanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                                contentDescription = if (infoExpanded) "Collapse" else "Expand",
+                            )
+                        }
+                        if (infoExpanded) {
+                            Text(
+                                culture.expertiseSummary,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(top = 4.dp),
+                            )
+                        }
+                    }
+                }
             }
-    }
-    val selectedCultures = remember(draft.cultureIds) {
-        draft.cultureIds.mapNotNull { id -> RulesRepository.cultures.firstOrNull { it.id == id } }
-    }
-    selectedCultures.forEach { culture ->
-        Text(
-            "${culture.name}: ${culture.expertiseSummary}",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        }
     }
 }
 
