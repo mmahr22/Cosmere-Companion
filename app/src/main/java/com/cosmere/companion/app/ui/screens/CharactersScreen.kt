@@ -68,6 +68,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -93,7 +94,7 @@ import kotlinx.serialization.json.Json
 private const val MAX_CULTURES = 2
 
 @Composable
-fun CharactersScreen(viewModel: CharacterViewModel = viewModel()) {
+fun CharactersScreen(onOpenReference: (String) -> Unit = {}, viewModel: CharacterViewModel = viewModel()) {
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val characters by viewModel.characters.collectAsStateWithLifecycle()
 
@@ -120,6 +121,7 @@ fun CharactersScreen(viewModel: CharacterViewModel = viewModel()) {
                 viewModel.delete(openCharacter)
                 openCharacterId = 0
             },
+            onOpenReference = onOpenReference,
         )
         else -> CharacterRosterScreen(
             characters = characters,
@@ -290,6 +292,19 @@ private fun pointsSuffix(remaining: Int): String = when {
     remaining > 0 -> " ($remaining remaining)"
     remaining < 0 -> " (${-remaining} over)"
     else -> ""
+}
+
+/** A tappable name that jumps to the matching entry in the Reference tab. */
+@Composable
+private fun SheetLink(text: String, onClick: () -> Unit) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodyMedium.copy(
+            color = MaterialTheme.colorScheme.primary,
+            textDecoration = TextDecoration.Underline,
+        ),
+        modifier = Modifier.clickable(onClick = onClick),
+    )
 }
 
 /** A small stepper for ad-hoc GM-granted points, shown under a budgeted section's header. */
@@ -1009,6 +1024,7 @@ private fun CharacterSheet(
     onUpdate: (PlayerCharacter) -> Unit,
     onBack: () -> Unit,
     onDelete: () -> Unit,
+    onOpenReference: (String) -> Unit,
 ) {
     val heroicPath = remember(character.heroicPathId) { RulesRepository.pathById(character.heroicPathId) }
     val radiantPath = remember(character.radiantPathId) {
@@ -1081,18 +1097,30 @@ private fun CharacterSheet(
             Text(character.name, style = MaterialTheme.typography.headlineSmall)
         }
         if (ancestry != null || cultures.isNotEmpty()) {
-            Text(
-                (listOfNotNull(ancestry?.name) + cultures.map { it.name }).joinToString(" · "),
-                style = MaterialTheme.typography.bodyMedium,
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                ancestry?.let { a ->
+                    SheetLink(a.name, onClick = { onOpenReference(ancestryReferenceKey(a.id)) })
+                    if (cultures.isNotEmpty()) Text(" · ", style = MaterialTheme.typography.bodyMedium)
+                }
+                cultures.forEachIndexed { index, culture ->
+                    SheetLink(culture.name, onClick = { onOpenReference(cultureReferenceKey(culture.id)) })
+                    if (index != cultures.lastIndex) Text(" · ", style = MaterialTheme.typography.bodyMedium)
+                }
+            }
         }
-        val pathLine = buildString {
-            append(heroicPath?.name ?: character.heroicPathId)
-            character.specialty?.let { append(" — $it") }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (heroicPath != null) {
+                SheetLink(heroicPath.name, onClick = { onOpenReference(pathReferenceKey(heroicPath.id)) })
+            } else {
+                Text(character.heroicPathId, style = MaterialTheme.typography.bodyMedium)
+            }
+            character.specialty?.let { Text(" — $it", style = MaterialTheme.typography.bodyMedium) }
         }
-        Text(pathLine, style = MaterialTheme.typography.bodyMedium)
         radiantPath?.let { rp ->
-            Text("${rp.name} · Bonded to ${rp.sprenType ?: "a spren"}", style = MaterialTheme.typography.bodyMedium)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                SheetLink(rp.name, onClick = { onOpenReference(pathReferenceKey(rp.id)) })
+                Text(" · Bonded to ${rp.sprenType ?: "a spren"}", style = MaterialTheme.typography.bodyMedium)
+            }
         }
 
         Row(

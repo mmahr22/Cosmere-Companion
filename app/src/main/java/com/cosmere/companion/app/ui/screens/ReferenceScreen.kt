@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
@@ -25,12 +26,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.cosmere.companion.core.data.RulesRepository
@@ -61,6 +64,16 @@ private enum class ReferenceCategory(val label: String) {
 }
 
 /**
+ * Builders for [ReferenceEntry.key] values, shared with call sites outside this file
+ * (e.g. `CharactersScreen`) that need to link into a specific Reference entry.
+ */
+fun pathReferenceKey(id: String): String = "path:$id"
+fun talentReferenceKey(id: String): String = "talent:$id"
+fun surgeReferenceKey(id: String): String = "surge:$id"
+fun ancestryReferenceKey(id: String): String = "ancestry:$id"
+fun cultureReferenceKey(id: String): String = "culture:$id"
+
+/**
  * A unifying wrapper so paths, talents, surges, and conditions can share one
  * searchable/filterable list even though their underlying shapes differ.
  */
@@ -73,7 +86,7 @@ private sealed interface ReferenceEntry {
     val page: Int?
 
     data class PathItem(val path: GamePath) : ReferenceEntry {
-        override val key: String = "path:${path.id}"
+        override val key: String = pathReferenceKey(path.id)
         override val name: String = path.name
         override val subtitle: String = "${path.type.replaceFirstChar { it.uppercase() }} Path"
         override val summary: String = path.summary
@@ -82,7 +95,7 @@ private sealed interface ReferenceEntry {
     }
 
     data class TalentItem(val talent: Talent) : ReferenceEntry {
-        override val key: String = "talent:${talent.id}"
+        override val key: String = talentReferenceKey(talent.id)
         override val name: String = talent.name
         override val subtitle: String = buildString {
             append(formatActivation(talent.activationType))
@@ -94,7 +107,7 @@ private sealed interface ReferenceEntry {
     }
 
     data class SurgeItem(val surge: SurgeEntry) : ReferenceEntry {
-        override val key: String = "surge:${surge.id}"
+        override val key: String = surgeReferenceKey(surge.id)
         override val name: String = surge.name
         override val subtitle: String = "Surge • ${formatIdentifier(surge.attributeId)}"
         override val summary: String = surge.summary
@@ -112,7 +125,7 @@ private sealed interface ReferenceEntry {
     }
 
     data class AncestryItem(val ancestry: Ancestry) : ReferenceEntry {
-        override val key: String = "ancestry:${ancestry.id}"
+        override val key: String = ancestryReferenceKey(ancestry.id)
         override val name: String = ancestry.name
         override val subtitle: String = "Ancestry • Size ${ancestry.size}"
         override val summary: String = ancestry.summary
@@ -121,7 +134,7 @@ private sealed interface ReferenceEntry {
     }
 
     data class CultureItem(val culture: Culture) : ReferenceEntry {
-        override val key: String = "culture:${culture.id}"
+        override val key: String = cultureReferenceKey(culture.id)
         override val name: String = culture.name
         override val subtitle: String = "Culture" + if (culture.singerOnly) " • Singer only" else ""
         override val summary: String = culture.summary
@@ -182,11 +195,13 @@ private fun formatActivation(activation: Activation): String = when (activation)
 }
 
 @Composable
-fun ReferenceScreen() {
+fun ReferenceScreen(focusKey: String? = null, onFocusHandled: () -> Unit = {}) {
     val entries = remember { buildReferenceEntries() }
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf(ReferenceCategory.ALL) }
     var expandedKey by remember { mutableStateOf<String?>(null) }
+    var pendingScrollKey by remember { mutableStateOf<String?>(null) }
+    val listState = rememberLazyListState()
 
     val filteredEntries = remember(entries, searchQuery, selectedCategory) {
         entries.filter { entry ->
@@ -196,6 +211,31 @@ fun ReferenceScreen() {
                 entry.name.contains(searchQuery, ignoreCase = true) ||
                 entry.summary.contains(searchQuery, ignoreCase = true)
             matchesCategory && matchesQuery
+        }
+    }
+
+    // Jumps the list to a specific entry, resetting any filters that would hide it —
+    // used both for cross-tab links (from the character sheet) and in-Reference links
+    // (e.g. tapping a talent's path from within its detail card).
+    fun jumpTo(key: String) {
+        selectedCategory = ReferenceCategory.ALL
+        searchQuery = ""
+        expandedKey = key
+        pendingScrollKey = key
+    }
+
+    LaunchedEffect(focusKey) {
+        val key = focusKey ?: return@LaunchedEffect
+        jumpTo(key)
+        onFocusHandled()
+    }
+
+    LaunchedEffect(filteredEntries, pendingScrollKey) {
+        val key = pendingScrollKey ?: return@LaunchedEffect
+        val index = filteredEntries.indexOfFirst { it.key == key }
+        if (index >= 0) {
+            listState.animateScrollToItem(index)
+            pendingScrollKey = null
         }
     }
 
@@ -243,6 +283,7 @@ fun ReferenceScreen() {
             )
         } else {
             LazyColumn(
+                state = listState,
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
@@ -253,6 +294,7 @@ fun ReferenceScreen() {
                         onToggle = {
                             expandedKey = if (expandedKey == entry.key) null else entry.key
                         },
+                        onLinkClick = ::jumpTo,
                     )
                 }
             }
@@ -265,6 +307,7 @@ private fun ReferenceEntryCard(
     entry: ReferenceEntry,
     expanded: Boolean,
     onToggle: () -> Unit,
+    onLinkClick: (String) -> Unit,
 ) {
     Card(
         modifier = Modifier
@@ -304,7 +347,7 @@ private fun ReferenceEntryCard(
             } else {
                 HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
                 Text(entry.summary, style = MaterialTheme.typography.bodyMedium)
-                ReferenceEntryDetails(entry)
+                ReferenceEntryDetails(entry, onLinkClick)
                 entry.page?.let { page ->
                     Text(
                         text = "Page $page",
@@ -318,27 +361,46 @@ private fun ReferenceEntryCard(
 }
 
 @Composable
-private fun ReferenceEntryDetails(entry: ReferenceEntry) {
+private fun ReferenceEntryDetails(entry: ReferenceEntry, onLinkClick: (String) -> Unit) {
     when (entry) {
-        is ReferenceEntry.PathItem -> PathDetails(entry.path)
-        is ReferenceEntry.TalentItem -> TalentDetails(entry.talent)
+        is ReferenceEntry.PathItem -> PathDetails(entry.path, onLinkClick)
+        is ReferenceEntry.TalentItem -> TalentDetails(entry.talent, onLinkClick)
         is ReferenceEntry.SurgeItem -> SurgeDetails(entry.surge)
         is ReferenceEntry.ConditionItem -> ConditionDetails(entry.condition)
-        is ReferenceEntry.AncestryItem -> AncestryDetails(entry.ancestry)
+        is ReferenceEntry.AncestryItem -> AncestryDetails(entry.ancestry, onLinkClick)
         is ReferenceEntry.CultureItem -> CultureDetails(entry.culture)
-        is ReferenceEntry.SingerFormItem -> SingerFormDetails(entry.form)
+        is ReferenceEntry.SingerFormItem -> SingerFormDetails(entry.form, onLinkClick)
         is ReferenceEntry.ItemEntry -> ItemDetails(entry.item)
     }
 }
 
+/** A path id as it should be linked to from elsewhere — the "singer" path has no Paths entry of its own (it's surfaced as an Ancestry instead). */
+private fun linkKeyForPath(pathId: String): String =
+    if (pathId == "singer") ancestryReferenceKey("singer") else pathReferenceKey(pathId)
+
 @Composable
-private fun AncestryDetails(ancestry: Ancestry) {
+private fun LinkText(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodyMedium.copy(
+            color = MaterialTheme.colorScheme.primary,
+            textDecoration = TextDecoration.Underline,
+        ),
+        modifier = modifier.clickable(onClick = onClick),
+    )
+}
+
+@Composable
+private fun AncestryDetails(ancestry: Ancestry, onLinkClick: (String) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
         val levels = ancestry.bonusTalentLevels.joinToString()
         Text("Bonus Talents (Level $levels): ${ancestry.bonusTalentSource}")
         ancestry.keyTalentId?.let { keyTalentId ->
             val keyTalentName = RulesRepository.talents.firstOrNull { it.id == keyTalentId }?.name ?: keyTalentId
-            Text("Key Talent (Level 1): $keyTalentName")
+            Row {
+                Text("Key Talent (Level 1): ")
+                LinkText(keyTalentName, onClick = { onLinkClick(talentReferenceKey(keyTalentId)) })
+            }
         }
     }
 }
@@ -354,7 +416,7 @@ private fun CultureDetails(culture: Culture) {
 }
 
 @Composable
-private fun SingerFormDetails(form: SingerForm) {
+private fun SingerFormDetails(form: SingerForm, onLinkClick: (String) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
         if (form.attributeBonuses.isNotEmpty()) {
             val bonuses = form.attributeBonuses.entries.joinToString {
@@ -368,7 +430,10 @@ private fun SingerFormDetails(form: SingerForm) {
             Text("Granted by: Change Form (starting form)")
         } else {
             val talentName = RulesRepository.talents.firstOrNull { it.id == grantedBy }?.name ?: grantedBy
-            Text("Granted by: $talentName")
+            Row {
+                Text("Granted by: ")
+                LinkText(talentName, onClick = { onLinkClick(talentReferenceKey(grantedBy)) })
+            }
         }
     }
 }
@@ -398,14 +463,17 @@ private fun ItemDetails(item: Item) {
 }
 
 @Composable
-private fun PathDetails(path: GamePath) {
+private fun PathDetails(path: GamePath, onLinkClick: (String) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
         if (path.specialties.isNotEmpty()) {
             Text("Specialties: ${path.specialties.joinToString()}")
         }
         val keyTalentName = RulesRepository.talents.firstOrNull { it.id == path.keyTalentId }?.name
             ?: path.keyTalentId
-        Text("Key Talent: $keyTalentName")
+        Row {
+            Text("Key Talent: ")
+            LinkText(keyTalentName, onClick = { onLinkClick(talentReferenceKey(path.keyTalentId)) })
+        }
         path.startingSkillId?.let {
             Text("Starting Skill: ${formatIdentifier(it)}")
         }
@@ -417,23 +485,31 @@ private fun PathDetails(path: GamePath) {
         }
         path.sprenType?.let { Text("Spren Type: ${formatIdentifier(it)}") }
         if (path.surgeIds.isNotEmpty()) {
-            val surgeNames = path.surgeIds.joinToString {
-                RulesRepository.surgeById(it)?.name ?: formatIdentifier(it)
+            Text("Surges:")
+            path.surgeIds.forEach { surgeId ->
+                val surgeName = RulesRepository.surgeById(surgeId)?.name ?: formatIdentifier(surgeId)
+                LinkText(
+                    "• $surgeName",
+                    onClick = { onLinkClick(surgeReferenceKey(surgeId)) },
+                    modifier = Modifier.padding(start = 8.dp),
+                )
             }
-            Text("Surges: $surgeNames")
         }
     }
 }
 
 @Composable
-private fun TalentDetails(talent: Talent) {
+private fun TalentDetails(talent: Talent, onLinkClick: (String) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
         val pathName = RulesRepository.pathById(talent.pathId)?.name ?: talent.pathId
-        Text("Path: $pathName")
+        Row {
+            Text("Path: ")
+            LinkText(pathName, onClick = { onLinkClick(linkKeyForPath(talent.pathId)) })
+        }
         talent.specialty?.let { Text("Specialty: $it") }
         talent.focusCost?.let { Text("Focus Cost: $it") }
 
-        val prerequisites = buildList {
+        val otherPrerequisites = buildList {
             if (talent.prerequisiteSkills.isNotEmpty()) {
                 add(
                     "Skills: " + talent.prerequisiteSkills.entries.joinToString {
@@ -441,27 +517,32 @@ private fun TalentDetails(talent: Talent) {
                     },
                 )
             }
+            talent.prerequisiteLevel?.let { add("Level: $it") }
+            talent.prerequisiteIdealSpoken?.let { add("Requires Ideal $it spoken") }
+            talent.prerequisiteOther?.let { add(it) }
+        }
+
+        if (otherPrerequisites.isEmpty() && talent.prerequisiteTalents.isEmpty()) {
+            Text("Prerequisites: None")
+        } else {
+            Text("Prerequisites:")
+            otherPrerequisites.forEach { Text("• $it") }
             if (talent.prerequisiteTalents.isNotEmpty()) {
                 val mode = if (talent.prerequisiteTalentsMode.equals("any", ignoreCase = true)) {
                     "any of"
                 } else {
                     "all of"
                 }
-                val talentNames = talent.prerequisiteTalents.joinToString {
-                    RulesRepository.talents.firstOrNull { t -> t.id == it }?.name ?: it
+                Text("• Talents ($mode):")
+                talent.prerequisiteTalents.forEach { prereqId ->
+                    val prereqName = RulesRepository.talents.firstOrNull { t -> t.id == prereqId }?.name ?: prereqId
+                    LinkText(
+                        "◦ $prereqName",
+                        onClick = { onLinkClick(talentReferenceKey(prereqId)) },
+                        modifier = Modifier.padding(start = 12.dp),
+                    )
                 }
-                add("Talents ($mode): $talentNames")
             }
-            talent.prerequisiteLevel?.let { add("Level: $it") }
-            talent.prerequisiteIdealSpoken?.let { add("Requires Ideal $it spoken") }
-            talent.prerequisiteOther?.let { add(it) }
-        }
-
-        if (prerequisites.isEmpty()) {
-            Text("Prerequisites: None")
-        } else {
-            Text("Prerequisites:")
-            prerequisites.forEach { Text("• $it") }
         }
     }
 }

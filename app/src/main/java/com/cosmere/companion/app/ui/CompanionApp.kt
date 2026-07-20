@@ -12,6 +12,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -38,6 +41,7 @@ fun CompanionApp() {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
+    var referenceFocusKey by rememberSaveable { mutableStateOf<String?>(null) }
 
     Scaffold(
         bottomBar = {
@@ -66,9 +70,25 @@ fun CompanionApp() {
             startDestination = TopLevelDestination.Characters.route,
             modifier = Modifier.padding(innerPadding),
         ) {
-            composable(TopLevelDestination.Characters.route) { CharactersScreen() }
+            composable(TopLevelDestination.Characters.route) {
+                CharactersScreen(
+                    onOpenReference = { key ->
+                        referenceFocusKey = key
+                        navController.navigate(TopLevelDestination.Reference.route) {
+                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                )
+            }
             composable(TopLevelDestination.Dice.route) { DiceScreen() }
-            composable(TopLevelDestination.Reference.route) { ReferenceScreen() }
+            composable(TopLevelDestination.Reference.route) {
+                ReferenceScreen(
+                    focusKey = referenceFocusKey,
+                    onFocusHandled = { referenceFocusKey = null },
+                )
+            }
         }
     }
 }
