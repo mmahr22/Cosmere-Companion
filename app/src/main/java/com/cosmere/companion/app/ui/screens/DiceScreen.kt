@@ -17,6 +17,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,7 +33,7 @@ import com.cosmere.companion.core.dice.SkillTestRoller
 import kotlin.math.roundToInt
 
 @Composable
-fun DiceScreen() {
+fun DiceScreen(initialModifier: Int? = null, onInitialModifierConsumed: () -> Unit = {}) {
     val skillRoller = remember { SkillTestRoller() }
     val damageRoller = remember { DamageRoller() }
 
@@ -41,6 +42,12 @@ fun DiceScreen() {
     var usePlotDie by remember { mutableStateOf(false) }
     var result by remember { mutableStateOf<SkillTestResult?>(null) }
     var damageText by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(initialModifier) {
+        val value = initialModifier ?: return@LaunchedEffect
+        modifier = value.toFloat().coerceIn(-5f, 15f)
+        onInitialModifierConsumed()
+    }
 
     Column(
         modifier = Modifier

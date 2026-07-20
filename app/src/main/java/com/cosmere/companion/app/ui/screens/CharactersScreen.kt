@@ -27,6 +27,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Casino
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
@@ -101,7 +102,11 @@ import kotlinx.serialization.json.Json
 private const val MAX_CULTURES = 2
 
 @Composable
-fun CharactersScreen(onOpenReference: (String) -> Unit = {}, viewModel: CharacterViewModel = viewModel()) {
+fun CharactersScreen(
+    onOpenReference: (String) -> Unit = {},
+    onRoll: (Int) -> Unit = {},
+    viewModel: CharacterViewModel = viewModel(),
+) {
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val characters by viewModel.characters.collectAsStateWithLifecycle()
 
@@ -129,6 +134,7 @@ fun CharactersScreen(onOpenReference: (String) -> Unit = {}, viewModel: Characte
                 openCharacterId = 0
             },
             onOpenReference = onOpenReference,
+            onRoll = onRoll,
         )
         else -> CharacterRosterScreen(
             characters = characters,
@@ -1096,6 +1102,7 @@ private fun CharacterSheet(
     onBack: () -> Unit,
     onDelete: () -> Unit,
     onOpenReference: (String) -> Unit,
+    onRoll: (Int) -> Unit,
 ) {
     val heroicPath = remember(character.heroicPathId) { RulesRepository.pathById(character.heroicPathId) }
     val radiantPath = remember(character.radiantPathId) {
@@ -1326,6 +1333,9 @@ private fun CharacterSheet(
                 ) {
                     Text(skill.displayName + if (autoMinimum > 0) " (path)" else "")
                     Row(verticalAlignment = Alignment.CenterVertically) {
+                        IconButton(
+                            onClick = { onRoll(character.effectiveAttribute(attribute) + rank) },
+                        ) { Icon(Icons.Filled.Casino, contentDescription = "Roll ${skill.displayName}") }
                         IconButton(
                             onClick = { if (rank > autoMinimum) updateSkillRank(skill.name, rank - 1) },
                             enabled = rank > autoMinimum,

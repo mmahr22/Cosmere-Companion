@@ -42,6 +42,7 @@ fun CompanionApp() {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
     var referenceFocusKey by rememberSaveable { mutableStateOf<String?>(null) }
+    var diceModifier by rememberSaveable { mutableStateOf<Int?>(null) }
 
     Scaffold(
         bottomBar = {
@@ -80,9 +81,22 @@ fun CompanionApp() {
                             restoreState = true
                         }
                     },
+                    onRoll = { rollModifier ->
+                        diceModifier = rollModifier
+                        navController.navigate(TopLevelDestination.Dice.route) {
+                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
                 )
             }
-            composable(TopLevelDestination.Dice.route) { DiceScreen() }
+            composable(TopLevelDestination.Dice.route) {
+                DiceScreen(
+                    initialModifier = diceModifier,
+                    onInitialModifierConsumed = { diceModifier = null },
+                )
+            }
             composable(TopLevelDestination.Reference.route) {
                 ReferenceScreen(
                     focusKey = referenceFocusKey,
