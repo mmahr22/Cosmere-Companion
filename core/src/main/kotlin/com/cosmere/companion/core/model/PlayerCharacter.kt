@@ -40,6 +40,8 @@ import com.cosmere.companion.core.data.RulesRepository
  * else an item's traits do (damage, special actions) only matters mid-fight.
  */
 data class PlayerCharacter(
+    // 0 means "not yet persisted" — Room assigns a real autoGenerate id on first save.
+    val id: Int = 0,
     val name: String,
     val ancestryId: String? = null,
     val cultureIds: List<String> = emptyList(),

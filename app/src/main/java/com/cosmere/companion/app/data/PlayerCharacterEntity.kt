@@ -23,15 +23,10 @@ class MapConverters {
     fun toStringList(value: String): List<String> = Json.decodeFromString(value)
 }
 
-/**
- * Only one row is ever stored (fixed [id]): this app tracks a single active
- * character sheet, not a roster, so persistence just needs to survive
- * process death across app restarts.
- */
 @Entity(tableName = "player_character")
 @TypeConverters(MapConverters::class)
 data class PlayerCharacterEntity(
-    @PrimaryKey val id: Int = CURRENT_CHARACTER_ID,
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val name: String,
     val ancestryId: String?,
     val cultureIds: List<String>,
@@ -50,13 +45,10 @@ data class PlayerCharacterEntity(
     val inventory: Map<String, Int>,
     val equippedWeaponIds: List<String>,
     val equippedArmorId: String?,
-) {
-    companion object {
-        const val CURRENT_CHARACTER_ID = 0
-    }
-}
+)
 
 fun PlayerCharacter.toEntity(): PlayerCharacterEntity = PlayerCharacterEntity(
+    id = id,
     name = name,
     ancestryId = ancestryId,
     cultureIds = cultureIds,
@@ -78,6 +70,7 @@ fun PlayerCharacter.toEntity(): PlayerCharacterEntity = PlayerCharacterEntity(
 )
 
 fun PlayerCharacterEntity.toDomain(): PlayerCharacter = PlayerCharacter(
+    id = id,
     name = name,
     ancestryId = ancestryId,
     cultureIds = cultureIds,

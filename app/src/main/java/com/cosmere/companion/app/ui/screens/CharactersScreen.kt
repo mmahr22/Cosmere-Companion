@@ -12,14 +12,18 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
@@ -71,20 +75,128 @@ private const val MAX_CULTURES = 2
 @Composable
 fun CharactersScreen(viewModel: CharacterViewModel = viewModel()) {
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
-    val existing by viewModel.character.collectAsStateWithLifecycle()
+    val characters by viewModel.characters.collectAsStateWithLifecycle()
 
-    if (isLoading) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+    // 0 means "no character open" — real ids start at 1 (Room autoGenerate).
+    var openCharacterId by rememberSaveable { mutableStateOf(0) }
+    var isCreating by rememberSaveable { mutableStateOf(false) }
+    val openCharacter = characters.firstOrNull { it.id == openCharacterId }
+
+    when {
+        isLoading -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
-    } else if (existing == null) {
-        CharacterCreationForm(onCreate = viewModel::save)
-    } else {
-        CharacterSheet(
-            character = existing!!,
-            onUpdate = viewModel::save,
-            onReset = viewModel::reset,
+        isCreating -> CharacterCreationForm(
+            onCreate = { character ->
+                viewModel.save(character)
+                isCreating = false
+            },
         )
+        openCharacter != null -> CharacterSheet(
+            character = openCharacter,
+            onUpdate = viewModel::save,
+            onBack = { openCharacterId = 0 },
+            onDelete = {
+                viewModel.delete(openCharacter)
+                openCharacterId = 0
+            },
+        )
+        else -> CharacterRosterScreen(
+            characters = characters,
+            onSelect = { openCharacterId = it.id },
+            onCreateNew = { isCreating = true },
+        )
+    }
+}
+
+@Composable
+private fun CharacterRosterScreen(
+    characters: List<PlayerCharacter>,
+    onSelect: (PlayerCharacter) -> Unit,
+    onCreateNew: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text("Characters", style = MaterialTheme.typography.headlineSmall)
+            IconButton(onClick = onCreateNew) {
+                Icon(Icons.Filled.Add, contentDescription = "Create character")
+            }
+        }
+
+        if (characters.isEmpty()) {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+            ) {
+                Text(
+                    "No characters yet.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(onClick = onCreateNew) {
+                    Text("Create Character")
+                }
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                items(characters, key = { it.id }) { character ->
+                    CharacterRosterRow(character = character, onClick = { onSelect(character) })
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CharacterRosterRow(character: PlayerCharacter, onClick: () -> Unit) {
+    val ancestry = remember(character.ancestryId) { character.ancestryId?.let(RulesRepository::ancestryById) }
+    val heroicPath = remember(character.heroicPathId) { RulesRepository.pathById(character.heroicPathId) }
+
+    Card(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(character.name, style = MaterialTheme.typography.titleMedium)
+                val subtitle = buildString {
+                    ancestry?.let { append(it.name) }
+                    heroicPath?.let { path ->
+                        if (isNotEmpty()) append(" · ")
+                        append(path.name)
+                        character.specialty?.let { append(" — $it") }
+                    }
+                }
+                if (subtitle.isNotEmpty()) {
+                    Text(
+                        subtitle,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+            Text(
+                "${character.currentHealth}/${character.maxHealth} HP",
+                style = MaterialTheme.typography.bodySmall,
+            )
+        }
     }
 }
 
@@ -748,7 +860,8 @@ private fun SelectablePathRow(path: GamePath, selected: Boolean, onClick: () -> 
 private fun CharacterSheet(
     character: PlayerCharacter,
     onUpdate: (PlayerCharacter) -> Unit,
-    onReset: () -> Unit,
+    onBack: () -> Unit,
+    onDelete: () -> Unit,
 ) {
     val heroicPath = remember(character.heroicPathId) { RulesRepository.pathById(character.heroicPathId) }
     val radiantPath = remember(character.radiantPathId) {
@@ -773,7 +886,12 @@ private fun CharacterSheet(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text(character.name, style = MaterialTheme.typography.headlineSmall)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onBack) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back to characters")
+            }
+            Text(character.name, style = MaterialTheme.typography.headlineSmall)
+        }
         if (ancestry != null || cultures.isNotEmpty()) {
             Text(
                 (listOfNotNull(ancestry?.name) + cultures.map { it.name }).joinToString(" · "),
@@ -897,8 +1015,12 @@ private fun CharacterSheet(
         HorizontalDivider()
         InventorySection(character = character, onUpdate = onUpdate)
 
-        OutlinedButton(onClick = onReset, modifier = Modifier.fillMaxWidth()) {
-            Text("New Character")
+        OutlinedButton(
+            onClick = onDelete,
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text("Delete Character")
         }
     }
 }
