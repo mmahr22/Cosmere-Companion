@@ -827,16 +827,24 @@ private fun PathStep(
             },
         )
     }
-    if (heroicPath != null && heroicPath.specialties.isNotEmpty()) {
-        Text("Specialty", style = MaterialTheme.typography.titleMedium)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            heroicPath.specialties.forEach { spec ->
-                FilterChip(
-                    selected = draft.specialty == spec,
-                    onClick = { onChange(draft.copy(specialty = spec)) },
-                    label = { Text(spec) },
-                )
-            }
+    SpecialtyPicker(
+        specialties = heroicPath?.specialties.orEmpty(),
+        selected = draft.specialty,
+        onSelect = { spec -> onChange(draft.copy(specialty = spec)) },
+    )
+}
+
+@Composable
+private fun SpecialtyPicker(specialties: List<String>, selected: String?, onSelect: (String) -> Unit) {
+    if (specialties.isEmpty()) return
+    Text("Specialty", style = MaterialTheme.typography.titleMedium)
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        specialties.forEach { spec ->
+            SpecialtyChip(
+                label = spec,
+                selected = selected == spec,
+                onClick = { onSelect(spec) },
+            )
         }
     }
 }
@@ -1052,6 +1060,30 @@ private fun SelectablePathRow(path: GamePath, selected: Boolean, onClick: () -> 
                 overflow = TextOverflow.Ellipsis,
             )
         }
+    }
+}
+
+/**
+ * A tappable pill matching [FilterChip]'s look, used in place of the real
+ * thing for the specialty picker — Material3's `FilterChip` was silently
+ * failing to render or receive taps here (though it renders fine elsewhere
+ * in the app), while this plain `Card` uses the exact pattern already proven
+ * reliable for [SelectablePathRow] and the culture picker's rows.
+ */
+@Composable
+private fun SpecialtyChip(label: String, selected: Boolean, onClick: () -> Unit) {
+    Card(
+        onClick = onClick,
+        colors = CardDefaults.cardColors(
+            containerColor = if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+        ),
+    ) {
+        Text(
+            label,
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+        )
     }
 }
 
