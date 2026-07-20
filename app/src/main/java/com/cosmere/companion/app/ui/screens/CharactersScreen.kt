@@ -239,7 +239,7 @@ private fun CharacterRosterRow(
                 }
             }
             Text(
-                "${character.currentHealth}/${character.maxHealth} HP",
+                "Lv ${character.level} · ${character.currentHealth}/${character.maxHealth} HP",
                 style = MaterialTheme.typography.bodySmall,
             )
             Box {
@@ -285,6 +285,12 @@ private fun avatarColorFor(name: String): Color = AVATAR_COLORS[(name.hashCode()
 
 private fun initialsFor(name: String): String =
     name.trim().split(" ").filter { it.isNotBlank() }.take(2).mapNotNull { it.firstOrNull()?.uppercaseChar() }.joinToString("")
+
+private fun pointsSuffix(remaining: Int): String = when {
+    remaining > 0 -> " ($remaining remaining)"
+    remaining < 0 -> " (${-remaining} over)"
+    else -> ""
+}
 
 @Composable
 private fun CharacterAvatar(
@@ -1000,6 +1006,13 @@ private fun CharacterSheet(
         onUpdate(character.copy(skillRanks = character.skillRanks + (skillId to clamped)))
     }
 
+    val skillPointsSpent = Skill.entries.sumOf { skill ->
+        val autoMinimum = if (skill.name == heroicPath?.startingSkillId) 1 else 0
+        (character.skillRank(skill.name) - autoMinimum).coerceAtLeast(0)
+    }
+    val skillPointsRemaining = (CharacterMath.totalSkillRanks(character.level) - 1) - skillPointsSpent
+    val attributePointsRemaining = CharacterMath.totalAttributePoints(character.level) - character.attributes.values.sum()
+
     val context = LocalContext.current
     val pickAvatar = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri != null) {
@@ -1062,6 +1075,23 @@ private fun CharacterSheet(
             Text("${rp.name} · Bonded to ${rp.sprenType ?: "a spren"}", style = MaterialTheme.typography.bodyMedium)
         }
 
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                "Level ${character.level}",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+            )
+            if (character.level < 20) {
+                Button(onClick = { onUpdate(character.copy(level = character.level + 1)) }) {
+                    Text("Level Up")
+                }
+            }
+        }
+
         if (character.ancestryId == "singer") {
             HorizontalDivider()
             SingerFormsSection(character = character, onUpdate = onUpdate)
@@ -1099,6 +1129,42 @@ private fun CharacterSheet(
 
         HorizontalDivider()
 
+        Text(
+            "Attributes" + pointsSuffix(attributePointsRemaining),
+            style = MaterialTheme.typography.titleMedium,
+        )
+        Attribute.entries.forEach { attribute ->
+            val value = character.attribute(attribute)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text("${attribute.displayName} (${attribute.abbreviation})")
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(
+                        onClick = {
+                            if (value > 0) {
+                                onUpdate(character.copy(attributes = character.attributes + (attribute to value - 1)))
+                            }
+                        },
+                        enabled = value > 0,
+                    ) { Icon(Icons.Filled.Remove, contentDescription = "Decrease ${attribute.displayName}") }
+                    Text("$value", modifier = Modifier.width(24.dp), textAlign = TextAlign.Center)
+                    IconButton(
+                        onClick = {
+                            if (value < CharacterMath.ATTRIBUTE_LEVEL_CAP && attributePointsRemaining > 0) {
+                                onUpdate(character.copy(attributes = character.attributes + (attribute to value + 1)))
+                            }
+                        },
+                        enabled = value < CharacterMath.ATTRIBUTE_LEVEL_CAP && attributePointsRemaining > 0,
+                    ) { Icon(Icons.Filled.Add, contentDescription = "Increase ${attribute.displayName}") }
+                }
+            }
+        }
+
+        HorizontalDivider()
+
         Text("Defenses", style = MaterialTheme.typography.titleMedium)
         Defense.entries.forEach { defense ->
             val pair = Attribute.entries.filter { it.defense == defense }
@@ -1113,27 +1179,33 @@ private fun CharacterSheet(
 
         HorizontalDivider()
 
-        Text("Skills", style = MaterialTheme.typography.titleMedium)
+        Text(
+            "Skills" + pointsSuffix(skillPointsRemaining),
+            style = MaterialTheme.typography.titleMedium,
+        )
         val skillCap = CharacterMath.maxSkillRank(character.level)
         Attribute.entries.forEach { attribute ->
             Text(attribute.displayName, style = MaterialTheme.typography.labelLarge)
             Skill.forAttribute(attribute).forEach { skill ->
+                val autoMinimum = if (skill.name == heroicPath?.startingSkillId) 1 else 0
                 val rank = character.skillRank(skill.name)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
-                    Text(skill.displayName)
+                    Text(skill.displayName + if (autoMinimum > 0) " (path)" else "")
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         IconButton(
-                            onClick = { updateSkillRank(skill.name, rank - 1) },
-                            enabled = rank > 0,
+                            onClick = { if (rank > autoMinimum) updateSkillRank(skill.name, rank - 1) },
+                            enabled = rank > autoMinimum,
                         ) { Icon(Icons.Filled.Remove, contentDescription = "Decrease ${skill.displayName}") }
                         Text("$rank", modifier = Modifier.width(24.dp), textAlign = TextAlign.Center)
                         IconButton(
-                            onClick = { updateSkillRank(skill.name, rank + 1) },
-                            enabled = rank < skillCap,
+                            onClick = {
+                                if (rank < skillCap && skillPointsRemaining > 0) updateSkillRank(skill.name, rank + 1)
+                            },
+                            enabled = rank < skillCap && skillPointsRemaining > 0,
                         ) { Icon(Icons.Filled.Add, contentDescription = "Increase ${skill.displayName}") }
                     }
                 }

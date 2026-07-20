@@ -83,6 +83,25 @@ class CharacterMathTest {
     }
 
     @Test
+    fun `total skill ranks grow by 2 per level past the level 1 baseline`() {
+        assertEquals(5, CharacterMath.totalSkillRanks(1))
+        assertEquals(7, CharacterMath.totalSkillRanks(2))
+        assertEquals(43, CharacterMath.totalSkillRanks(20))
+        // Level 21+ is a floor only (choice of skill rank or talent per level).
+        assertEquals(43, CharacterMath.totalSkillRanks(21))
+    }
+
+    @Test
+    fun `total attribute points gain 1 at each milestone level`() {
+        assertEquals(12, CharacterMath.totalAttributePoints(1))
+        assertEquals(12, CharacterMath.totalAttributePoints(2))
+        assertEquals(13, CharacterMath.totalAttributePoints(3))
+        assertEquals(15, CharacterMath.totalAttributePoints(9))
+        assertEquals(18, CharacterMath.totalAttributePoints(18))
+        assertEquals(18, CharacterMath.totalAttributePoints(20))
+    }
+
+    @Test
     fun `unverified movement anchors match worked examples`() {
         // Speed 3 -> 30 ft and Speed 5 -> 40 ft appear in printed examples.
         assertEquals(30, UnverifiedDerivedStats.movementFeet(3))

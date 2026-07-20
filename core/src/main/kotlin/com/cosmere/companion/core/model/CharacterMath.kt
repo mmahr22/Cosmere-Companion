@@ -74,6 +74,10 @@ object CharacterMath {
             // only a floor can be computed; callers track the actual choice.
             CREATION_FREE_SKILL_RANKS + 1 + 2 * 19
         }
+
+    /** Total attribute points a character should have allocated at [level] (12 at creation, +1 per [ATTRIBUTE_INCREASE_LEVELS] milestone reached). */
+    fun totalAttributePoints(level: Int): Int =
+        CREATION_ATTRIBUTE_POINTS + ATTRIBUTE_INCREASE_LEVELS.count { it <= level }
 }
 
 /**
