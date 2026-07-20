@@ -1,5 +1,7 @@
 package com.cosmere.companion.app.ui.screens
 
+import android.content.Intent
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -27,6 +29,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.FileOpen
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.Remove
@@ -75,7 +78,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.cosmere.companion.app.data.readCharacterExport
 import com.cosmere.companion.app.data.saveAvatar
+import com.cosmere.companion.app.data.writeCharacterExport
 import com.cosmere.companion.core.data.RulesRepository
 import com.cosmere.companion.core.model.Ancestry
 import com.cosmere.companion.core.model.Attribute
@@ -128,6 +133,7 @@ fun CharactersScreen(onOpenReference: (String) -> Unit = {}, viewModel: Characte
             onSelect = { openCharacterId = it.id },
             onCreateNew = { isCreating = true },
             onDelete = viewModel::delete,
+            onImport = viewModel::save,
         )
     }
 }
@@ -138,8 +144,20 @@ private fun CharacterRosterScreen(
     onSelect: (PlayerCharacter) -> Unit,
     onCreateNew: () -> Unit,
     onDelete: (PlayerCharacter) -> Unit,
+    onImport: (PlayerCharacter) -> Unit,
 ) {
     var pendingDelete by remember { mutableStateOf<PlayerCharacter?>(null) }
+    val context = LocalContext.current
+    val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        try {
+            val imported = readCharacterExport(context, uri)
+            onImport(imported)
+            Toast.makeText(context, "Imported ${imported.name}", Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            Toast.makeText(context, "Couldn't read that file as a character export.", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -153,8 +171,13 @@ private fun CharacterRosterScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text("Characters", style = MaterialTheme.typography.headlineSmall)
-            IconButton(onClick = onCreateNew) {
-                Icon(Icons.Filled.Add, contentDescription = "Create character")
+            Row {
+                IconButton(onClick = { importLauncher.launch("*/*") }) {
+                    Icon(Icons.Filled.FileOpen, contentDescription = "Import character")
+                }
+                IconButton(onClick = onCreateNew) {
+                    Icon(Icons.Filled.Add, contentDescription = "Create character")
+                }
             }
         }
 
@@ -211,6 +234,7 @@ private fun CharacterRosterRow(
     val ancestry = remember(character.ancestryId) { character.ancestryId?.let(RulesRepository::ancestryById) }
     val heroicPath = remember(character.heroicPathId) { RulesRepository.pathById(character.heroicPathId) }
     var menuExpanded by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
     Card(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
         Row(
@@ -249,6 +273,19 @@ private fun CharacterRosterRow(
                     Icon(Icons.Filled.MoreVert, contentDescription = "More options for ${character.name}")
                 }
                 DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
+                    DropdownMenuItem(
+                        text = { Text("Export") },
+                        onClick = {
+                            menuExpanded = false
+                            val uri = writeCharacterExport(context, character)
+                            val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                                type = "application/json"
+                                putExtra(Intent.EXTRA_STREAM, uri)
+                                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                            }
+                            context.startActivity(Intent.createChooser(sendIntent, "Export ${character.name}"))
+                        },
+                    )
                     DropdownMenuItem(
                         text = { Text("Delete") },
                         onClick = {
