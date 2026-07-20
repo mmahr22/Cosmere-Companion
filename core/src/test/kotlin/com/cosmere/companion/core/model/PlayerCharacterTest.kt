@@ -134,4 +134,20 @@ class PlayerCharacterTest {
         val armored = unarmored.copy(equippedArmorId = "chain_armor")
         assertEquals(2, armored.deflectValue)
     }
+
+    @Test
+    fun `GM bonus points add on top of the level-derived budget`() {
+        val character = PlayerCharacter(
+            name = "Lopen",
+            attributes = attributes,
+            heroicPathId = "warrior",
+        )
+
+        assertEquals(12, character.totalAttributePoints)
+        assertEquals(5, character.totalSkillRanks)
+
+        val rewarded = character.copy(bonusAttributePoints = 2, bonusSkillPoints = 3)
+        assertEquals(14, rewarded.totalAttributePoints)
+        assertEquals(8, rewarded.totalSkillRanks)
+    }
 }

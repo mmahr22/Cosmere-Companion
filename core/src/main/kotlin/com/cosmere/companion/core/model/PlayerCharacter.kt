@@ -31,6 +31,12 @@ import com.cosmere.companion.core.data.RulesRepository
  * book's worked examples), so [maxInvestiture] is tracked as a plain value
  * the player sets rather than a computed one.
  *
+ * [bonusAttributePoints] and [bonusSkillPoints] cover ad-hoc GM grants (story
+ * rewards, homebrew boons) that fall outside the normal level-based budget
+ * ([totalAttributePoints]/[totalSkillRanks]) — they add directly to that
+ * budget rather than requiring a full level-up, which would also change
+ * skill/attribute points together and recompute max health/focus.
+ *
  * [inventory] is every item the character owns, keyed by [Item.id] with a
  * quantity; [equippedArmorId] and [equippedWeaponIds] mark which of those
  * owned items are currently worn/wielded (the book only allows one worn
@@ -61,6 +67,8 @@ data class PlayerCharacter(
     val equippedWeaponIds: List<String> = emptyList(),
     val equippedArmorId: String? = null,
     val avatarPath: String? = null,
+    val bonusAttributePoints: Int = 0,
+    val bonusSkillPoints: Int = 0,
 ) {
     fun attribute(attribute: Attribute): Int = attributes[attribute] ?: 0
 
@@ -82,6 +90,12 @@ data class PlayerCharacter(
     val maxFocus: Int get() = CharacterMath.maxFocus(effectiveAttribute(Attribute.WILLPOWER))
 
     fun skillRank(skillId: String): Int = skillRanks[skillId] ?: 0
+
+    /** Attribute point budget for [level], plus any ad-hoc [bonusAttributePoints] a GM has granted. */
+    val totalAttributePoints: Int get() = CharacterMath.totalAttributePoints(level) + bonusAttributePoints
+
+    /** Skill rank budget for [level] (including the free path-starting rank), plus any [bonusSkillPoints]. */
+    val totalSkillRanks: Int get() = CharacterMath.totalSkillRanks(level) + bonusSkillPoints
 
     /** Forms this character can currently switch into: the two free starting forms plus any unlocked. */
     val availableFormIds: List<String> get() = listOf("dullform", "mateform") + unlockedFormIds

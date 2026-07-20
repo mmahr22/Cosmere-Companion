@@ -1,0 +1,151 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 7,
+    "identityHash": "7023f5b8883824143c735248ef1e7281",
+    "entities": [
+      {
+        "tableName": "player_character",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `ancestryId` TEXT, `cultureIds` TEXT NOT NULL, `level` INTEGER NOT NULL, `attributes` TEXT NOT NULL, `heroicPathId` TEXT NOT NULL, `specialty` TEXT, `radiantPathId` TEXT, `skillRanks` TEXT NOT NULL, `currentHealth` INTEGER NOT NULL, `currentFocus` INTEGER NOT NULL, `currentInvestiture` INTEGER NOT NULL, `maxInvestiture` INTEGER NOT NULL, `unlockedFormIds` TEXT NOT NULL, `currentFormId` TEXT, `inventory` TEXT NOT NULL, `equippedWeaponIds` TEXT NOT NULL, `equippedArmorId` TEXT, `avatarPath` TEXT, `bonusAttributePoints` INTEGER NOT NULL, `bonusSkillPoints` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ancestryId",
+            "columnName": "ancestryId",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "cultureIds",
+            "columnName": "cultureIds",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "level",
+            "columnName": "level",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "attributes",
+            "columnName": "attributes",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "heroicPathId",
+            "columnName": "heroicPathId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "specialty",
+            "columnName": "specialty",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "radiantPathId",
+            "columnName": "radiantPathId",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "skillRanks",
+            "columnName": "skillRanks",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "currentHealth",
+            "columnName": "currentHealth",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "currentFocus",
+            "columnName": "currentFocus",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "currentInvestiture",
+            "columnName": "currentInvestiture",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "maxInvestiture",
+            "columnName": "maxInvestiture",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "unlockedFormIds",
+            "columnName": "unlockedFormIds",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "currentFormId",
+            "columnName": "currentFormId",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "inventory",
+            "columnName": "inventory",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "equippedWeaponIds",
+            "columnName": "equippedWeaponIds",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "equippedArmorId",
+            "columnName": "equippedArmorId",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "avatarPath",
+            "columnName": "avatarPath",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "bonusAttributePoints",
+            "columnName": "bonusAttributePoints",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bonusSkillPoints",
+            "columnName": "bonusSkillPoints",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '7023f5b8883824143c735248ef1e7281')"
+    ]
+  }
+}

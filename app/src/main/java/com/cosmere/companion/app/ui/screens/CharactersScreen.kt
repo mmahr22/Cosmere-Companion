@@ -292,6 +292,26 @@ private fun pointsSuffix(remaining: Int): String = when {
     else -> ""
 }
 
+/** A small stepper for ad-hoc GM-granted points, shown under a budgeted section's header. */
+@Composable
+private fun GmBonusRow(value: Int, onChange: (Int) -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            "GM Bonus",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        IconButton(
+            onClick = { if (value > 0) onChange(value - 1) },
+            enabled = value > 0,
+        ) { Icon(Icons.Filled.Remove, contentDescription = "Decrease GM bonus") }
+        Text("$value", modifier = Modifier.width(24.dp), textAlign = TextAlign.Center)
+        IconButton(onClick = { onChange(value + 1) }) {
+            Icon(Icons.Filled.Add, contentDescription = "Increase GM bonus")
+        }
+    }
+}
+
 @Composable
 private fun CharacterAvatar(
     avatarPath: String?,
@@ -1010,8 +1030,8 @@ private fun CharacterSheet(
         val autoMinimum = if (skill.name == heroicPath?.startingSkillId) 1 else 0
         (character.skillRank(skill.name) - autoMinimum).coerceAtLeast(0)
     }
-    val skillPointsRemaining = (CharacterMath.totalSkillRanks(character.level) - 1) - skillPointsSpent
-    val attributePointsRemaining = CharacterMath.totalAttributePoints(character.level) - character.attributes.values.sum()
+    val skillPointsRemaining = (character.totalSkillRanks - 1) - skillPointsSpent
+    val attributePointsRemaining = character.totalAttributePoints - character.attributes.values.sum()
 
     val context = LocalContext.current
     val pickAvatar = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
@@ -1133,6 +1153,10 @@ private fun CharacterSheet(
             "Attributes" + pointsSuffix(attributePointsRemaining),
             style = MaterialTheme.typography.titleMedium,
         )
+        GmBonusRow(
+            value = character.bonusAttributePoints,
+            onChange = { onUpdate(character.copy(bonusAttributePoints = it)) },
+        )
         Attribute.entries.forEach { attribute ->
             val value = character.attribute(attribute)
             Row(
@@ -1182,6 +1206,10 @@ private fun CharacterSheet(
         Text(
             "Skills" + pointsSuffix(skillPointsRemaining),
             style = MaterialTheme.typography.titleMedium,
+        )
+        GmBonusRow(
+            value = character.bonusSkillPoints,
+            onChange = { onUpdate(character.copy(bonusSkillPoints = it)) },
         )
         val skillCap = CharacterMath.maxSkillRank(character.level)
         Attribute.entries.forEach { attribute ->
