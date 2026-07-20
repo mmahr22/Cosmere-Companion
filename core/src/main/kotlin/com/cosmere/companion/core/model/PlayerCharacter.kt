@@ -41,6 +41,11 @@ import com.cosmere.companion.core.data.RulesRepository
  * notes) with no mechanical effect — the one field on the sheet that's
  * intentionally unstructured.
  *
+ * [activeConditions] tracks which of the book's temporary [Condition]s
+ * currently apply, keyed by [Condition.id]; the value is only meaningful for
+ * conditions with [Condition.hasBracketValue] (e.g. Exhausted's penalty,
+ * Afflicted's damage) and is otherwise just a presence marker.
+ *
  * [inventory] is every item the character owns, keyed by [Item.id] with a
  * quantity; [equippedArmorId] and [equippedWeaponIds] mark which of those
  * owned items are currently worn/wielded (the book only allows one worn
@@ -74,6 +79,7 @@ data class PlayerCharacter(
     val bonusAttributePoints: Int = 0,
     val bonusSkillPoints: Int = 0,
     val notes: String = "",
+    val activeConditions: Map<String, Int> = emptyMap(),
 ) {
     fun attribute(attribute: Attribute): Int = attributes[attribute] ?: 0
 

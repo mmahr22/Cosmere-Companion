@@ -72,6 +72,7 @@ fun talentReferenceKey(id: String): String = "talent:$id"
 fun surgeReferenceKey(id: String): String = "surge:$id"
 fun ancestryReferenceKey(id: String): String = "ancestry:$id"
 fun cultureReferenceKey(id: String): String = "culture:$id"
+fun conditionReferenceKey(id: String): String = "condition:$id"
 
 /**
  * A unifying wrapper so paths, talents, surges, and conditions can share one
@@ -116,7 +117,7 @@ private sealed interface ReferenceEntry {
     }
 
     data class ConditionItem(val condition: Condition) : ReferenceEntry {
-        override val key: String = "condition:${condition.id}"
+        override val key: String = conditionReferenceKey(condition.id)
         override val name: String = condition.name
         override val subtitle: String = "Condition"
         override val summary: String = condition.summary

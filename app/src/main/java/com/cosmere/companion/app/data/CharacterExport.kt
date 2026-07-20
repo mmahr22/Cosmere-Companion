@@ -41,6 +41,7 @@ private data class CharacterExport(
     val bonusAttributePoints: Int,
     val bonusSkillPoints: Int,
     val notes: String,
+    val activeConditions: Map<String, Int>,
 )
 
 /** A lightweight wrapper so an arbitrary/unrelated JSON file is rejected on import instead of silently misparsed. */
@@ -74,6 +75,7 @@ private fun PlayerCharacter.toExport(): CharacterExport = CharacterExport(
     bonusAttributePoints = bonusAttributePoints,
     bonusSkillPoints = bonusSkillPoints,
     notes = notes,
+    activeConditions = activeConditions,
 )
 
 private fun CharacterExport.toDomain(): PlayerCharacter = PlayerCharacter(
@@ -101,6 +103,7 @@ private fun CharacterExport.toDomain(): PlayerCharacter = PlayerCharacter(
     bonusAttributePoints = bonusAttributePoints,
     bonusSkillPoints = bonusSkillPoints,
     notes = notes,
+    activeConditions = activeConditions,
 )
 
 /**

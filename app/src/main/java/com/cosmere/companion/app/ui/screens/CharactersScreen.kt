@@ -27,6 +27,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.FileOpen
@@ -85,6 +86,7 @@ import com.cosmere.companion.core.data.RulesRepository
 import com.cosmere.companion.core.model.Ancestry
 import com.cosmere.companion.core.model.Attribute
 import com.cosmere.companion.core.model.CharacterMath
+import com.cosmere.companion.core.model.Condition
 import com.cosmere.companion.core.model.Defense
 import com.cosmere.companion.core.model.GamePath
 import com.cosmere.companion.core.model.Item
@@ -1245,6 +1247,9 @@ private fun CharacterSheet(
         )
 
         HorizontalDivider()
+        ConditionsSection(character = character, onUpdate = onUpdate, onOpenReference = onOpenReference)
+
+        HorizontalDivider()
 
         Text(
             "Attributes" + pointsSuffix(attributePointsRemaining),
@@ -1394,6 +1399,93 @@ private fun CharacterSheet(
                 },
                 onDismiss = { showDeleteConfirm = false },
             )
+        }
+    }
+}
+
+@Composable
+private fun ConditionsSection(
+    character: PlayerCharacter,
+    onUpdate: (PlayerCharacter) -> Unit,
+    onOpenReference: (String) -> Unit,
+) {
+    val allConditions = remember { RulesRepository.conditions }
+    var addMenuExpanded by remember { mutableStateOf(false) }
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text("Conditions", style = MaterialTheme.typography.titleMedium)
+        Box {
+            IconButton(onClick = { addMenuExpanded = true }) {
+                Icon(Icons.Filled.Add, contentDescription = "Add condition")
+            }
+            val available = remember(character.activeConditions) {
+                allConditions.filter { it.id !in character.activeConditions.keys }
+            }
+            DropdownMenu(expanded = addMenuExpanded, onDismissRequest = { addMenuExpanded = false }) {
+                if (available.isEmpty()) {
+                    DropdownMenuItem(text = { Text("All conditions active") }, onClick = {}, enabled = false)
+                }
+                available.forEach { condition ->
+                    DropdownMenuItem(
+                        text = { Text(condition.name) },
+                        onClick = {
+                            addMenuExpanded = false
+                            onUpdate(character.copy(activeConditions = character.activeConditions + (condition.id to 1)))
+                        },
+                    )
+                }
+            }
+        }
+    }
+
+    if (character.activeConditions.isEmpty()) {
+        Text(
+            "No active conditions.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    } else {
+        val sorted = remember(character.activeConditions) {
+            character.activeConditions.entries.sortedBy { (id, _) ->
+                allConditions.firstOrNull { it.id == id }?.name ?: id
+            }
+        }
+        sorted.forEach { (id, value) ->
+            val condition = allConditions.firstOrNull { it.id == id }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                SheetLink(condition?.name ?: id, onClick = { onOpenReference(conditionReferenceKey(id)) })
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (condition?.hasBracketValue == true) {
+                        IconButton(
+                            onClick = {
+                                onUpdate(
+                                    character.copy(
+                                        activeConditions = character.activeConditions + (id to (value - 1).coerceAtLeast(1)),
+                                    ),
+                                )
+                            },
+                            enabled = value > 1,
+                        ) { Icon(Icons.Filled.Remove, contentDescription = "Decrease ${condition.name} value") }
+                        Text("$value", modifier = Modifier.width(24.dp), textAlign = TextAlign.Center)
+                        IconButton(
+                            onClick = {
+                                onUpdate(character.copy(activeConditions = character.activeConditions + (id to value + 1)))
+                            },
+                        ) { Icon(Icons.Filled.Add, contentDescription = "Increase ${condition.name} value") }
+                    }
+                    IconButton(onClick = { onUpdate(character.copy(activeConditions = character.activeConditions - id)) }) {
+                        Icon(Icons.Filled.Close, contentDescription = "Remove ${condition?.name ?: id}")
+                    }
+                }
+            }
         }
     }
 }
