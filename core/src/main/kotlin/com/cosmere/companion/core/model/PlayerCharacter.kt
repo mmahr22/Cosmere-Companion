@@ -37,6 +37,10 @@ import com.cosmere.companion.core.data.RulesRepository
  * budget rather than requiring a full level-up, which would also change
  * skill/attribute points together and recompute max health/focus.
  *
+ * [notes] is freeform player-facing text (backstory, appearance, session
+ * notes) with no mechanical effect — the one field on the sheet that's
+ * intentionally unstructured.
+ *
  * [inventory] is every item the character owns, keyed by [Item.id] with a
  * quantity; [equippedArmorId] and [equippedWeaponIds] mark which of those
  * owned items are currently worn/wielded (the book only allows one worn
@@ -69,6 +73,7 @@ data class PlayerCharacter(
     val avatarPath: String? = null,
     val bonusAttributePoints: Int = 0,
     val bonusSkillPoints: Int = 0,
+    val notes: String = "",
 ) {
     fun attribute(attribute: Attribute): Int = attributes[attribute] ?: 0
 

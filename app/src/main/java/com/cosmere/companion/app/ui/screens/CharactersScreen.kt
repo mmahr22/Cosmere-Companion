@@ -1335,6 +1335,16 @@ private fun CharacterSheet(
         HorizontalDivider()
         InventorySection(character = character, onUpdate = onUpdate)
 
+        HorizontalDivider()
+        Text("Notes", style = MaterialTheme.typography.titleMedium)
+        OutlinedTextField(
+            value = character.notes,
+            onValueChange = { onUpdate(character.copy(notes = it)) },
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = { Text("Backstory, appearance, session notes…") },
+            minLines = 4,
+        )
+
         var showDeleteConfirm by remember { mutableStateOf(false) }
         OutlinedButton(
             onClick = { showDeleteConfirm = true },
@@ -1407,10 +1417,23 @@ private fun InventorySection(character: PlayerCharacter, onUpdate: (PlayerCharac
                 "Armor: ${equippedArmor?.name ?: "None"} (Deflect ${character.deflectValue})",
                 style = MaterialTheme.typography.bodySmall,
             )
-            Text(
-                "Weapons: " + if (equippedWeapons.isEmpty()) "None" else equippedWeapons.joinToString { it.name },
-                style = MaterialTheme.typography.bodySmall,
-            )
+            if (equippedWeapons.isEmpty()) {
+                Text("Weapons: None", style = MaterialTheme.typography.bodySmall)
+            } else {
+                Text("Weapons:", style = MaterialTheme.typography.bodySmall)
+                equippedWeapons.forEach { weapon ->
+                    Column(modifier = Modifier.padding(start = 8.dp)) {
+                        Text(weapon.name, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+                        weaponQuickStats(weapon)?.let {
+                            Text(
+                                it,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -1516,6 +1539,16 @@ private fun InventoryItemRow(
             Icon(Icons.Filled.Add, contentDescription = "Increase ${item.name} quantity")
         }
     }
+}
+
+/** A one-line combat quick-reference for an equipped weapon, or null if it carries no such stats. */
+private fun weaponQuickStats(item: Item): String? {
+    val parts = buildList {
+        item.damage?.let { add("Damage $it") }
+        item.range?.let { add("Range $it") }
+        if (item.traits.isNotEmpty()) add("Traits: ${item.traits.joinToString()}")
+    }
+    return parts.takeIf { it.isNotEmpty() }?.joinToString(" • ")
 }
 
 private fun itemSubtitle(item: Item): String = when (item.type) {

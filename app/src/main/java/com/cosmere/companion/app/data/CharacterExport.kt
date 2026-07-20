@@ -40,6 +40,7 @@ private data class CharacterExport(
     val equippedArmorId: String?,
     val bonusAttributePoints: Int,
     val bonusSkillPoints: Int,
+    val notes: String,
 )
 
 /** A lightweight wrapper so an arbitrary/unrelated JSON file is rejected on import instead of silently misparsed. */
@@ -72,6 +73,7 @@ private fun PlayerCharacter.toExport(): CharacterExport = CharacterExport(
     equippedArmorId = equippedArmorId,
     bonusAttributePoints = bonusAttributePoints,
     bonusSkillPoints = bonusSkillPoints,
+    notes = notes,
 )
 
 private fun CharacterExport.toDomain(): PlayerCharacter = PlayerCharacter(
@@ -98,6 +100,7 @@ private fun CharacterExport.toDomain(): PlayerCharacter = PlayerCharacter(
     equippedArmorId = equippedArmorId,
     bonusAttributePoints = bonusAttributePoints,
     bonusSkillPoints = bonusSkillPoints,
+    notes = notes,
 )
 
 /**

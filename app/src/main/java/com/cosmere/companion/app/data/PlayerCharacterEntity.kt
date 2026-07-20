@@ -48,6 +48,7 @@ data class PlayerCharacterEntity(
     val avatarPath: String?,
     val bonusAttributePoints: Int,
     val bonusSkillPoints: Int,
+    val notes: String,
 )
 
 fun PlayerCharacter.toEntity(): PlayerCharacterEntity = PlayerCharacterEntity(
@@ -73,6 +74,7 @@ fun PlayerCharacter.toEntity(): PlayerCharacterEntity = PlayerCharacterEntity(
     avatarPath = avatarPath,
     bonusAttributePoints = bonusAttributePoints,
     bonusSkillPoints = bonusSkillPoints,
+    notes = notes,
 )
 
 fun PlayerCharacterEntity.toDomain(): PlayerCharacter = PlayerCharacter(
@@ -100,4 +102,5 @@ fun PlayerCharacterEntity.toDomain(): PlayerCharacter = PlayerCharacter(
     avatarPath = avatarPath,
     bonusAttributePoints = bonusAttributePoints,
     bonusSkillPoints = bonusSkillPoints,
+    notes = notes,
 )

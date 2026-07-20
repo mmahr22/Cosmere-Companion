@@ -6,7 +6,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 
-@Database(entities = [PlayerCharacterEntity::class], version = 7, exportSchema = true)
+@Database(entities = [PlayerCharacterEntity::class], version = 8, exportSchema = true)
 @TypeConverters(MapConverters::class)
 abstract class CompanionDatabase : RoomDatabase() {
     abstract fun playerCharacterDao(): PlayerCharacterDao
