@@ -1,7 +1,6 @@
 package com.cosmere.companion.app.ui.screens
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,16 +8,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -50,9 +50,8 @@ import com.cosmere.companion.core.model.SurgeEntry
 import com.cosmere.companion.core.model.SurgeTalent
 import com.cosmere.companion.core.model.Talent
 
-/** Top-level category used for filtering the reference browser. */
+/** Top-level category used to split the reference browser into separate screens. */
 private enum class ReferenceCategory(val label: String) {
-    ALL("All"),
     ANCESTRIES("Ancestries"),
     CULTURES("Cultures"),
     PATHS("Paths"),
@@ -198,28 +197,30 @@ private fun formatActivation(activation: Activation): String = when (activation)
 @Composable
 fun ReferenceScreen(focusKey: String? = null, onFocusHandled: () -> Unit = {}) {
     val entries = remember { buildReferenceEntries() }
+    var selectedCategory by remember { mutableStateOf<ReferenceCategory?>(null) }
     var searchQuery by remember { mutableStateOf("") }
-    var selectedCategory by remember { mutableStateOf(ReferenceCategory.ALL) }
     var expandedKey by remember { mutableStateOf<String?>(null) }
     var pendingScrollKey by remember { mutableStateOf<String?>(null) }
     val listState = rememberLazyListState()
 
-    val filteredEntries = remember(entries, searchQuery, selectedCategory) {
+    val filteredEntries = remember(entries, selectedCategory, searchQuery) {
+        val category = selectedCategory ?: return@remember emptyList()
         entries.filter { entry ->
-            val matchesCategory =
-                selectedCategory == ReferenceCategory.ALL || entry.category == selectedCategory
-            val matchesQuery = searchQuery.isBlank() ||
-                entry.name.contains(searchQuery, ignoreCase = true) ||
-                entry.summary.contains(searchQuery, ignoreCase = true)
-            matchesCategory && matchesQuery
+            entry.category == category &&
+                (
+                    searchQuery.isBlank() ||
+                        entry.name.contains(searchQuery, ignoreCase = true) ||
+                        entry.summary.contains(searchQuery, ignoreCase = true)
+                    )
         }
     }
 
-    // Jumps the list to a specific entry, resetting any filters that would hide it —
-    // used both for cross-tab links (from the character sheet) and in-Reference links
-    // (e.g. tapping a talent's path from within its detail card).
+    // Jumps to a specific entry, switching category and clearing any search that would
+    // hide it — used both for cross-tab links (from the character sheet) and in-Reference
+    // links (e.g. tapping a talent's path from within its detail card).
     fun jumpTo(key: String) {
-        selectedCategory = ReferenceCategory.ALL
+        val target = entries.firstOrNull { it.key == key } ?: return
+        selectedCategory = target.category
         searchQuery = ""
         expandedKey = key
         pendingScrollKey = key
@@ -240,6 +241,36 @@ fun ReferenceScreen(focusKey: String? = null, onFocusHandled: () -> Unit = {}) {
         }
     }
 
+    val category = selectedCategory
+    if (category == null) {
+        ReferenceHubScreen(
+            categoryCounts = remember(entries) { entries.groupingBy { it.category }.eachCount() },
+            onSelectCategory = { selectedCategory = it },
+        )
+    } else {
+        ReferenceCategoryScreen(
+            category = category,
+            entries = filteredEntries,
+            searchQuery = searchQuery,
+            onQueryChange = { searchQuery = it },
+            expandedKey = expandedKey,
+            onToggle = { key -> expandedKey = if (expandedKey == key) null else key },
+            onLinkClick = ::jumpTo,
+            onBack = {
+                selectedCategory = null
+                searchQuery = ""
+                expandedKey = null
+            },
+            listState = listState,
+        )
+    }
+}
+
+@Composable
+private fun ReferenceHubScreen(
+    categoryCounts: Map<ReferenceCategory, Int>,
+    onSelectCategory: (ReferenceCategory) -> Unit,
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -248,36 +279,78 @@ fun ReferenceScreen(focusKey: String? = null, onFocusHandled: () -> Unit = {}) {
     ) {
         Text("Rules Reference", style = MaterialTheme.typography.headlineSmall)
 
+        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            items(ReferenceCategory.entries, key = { it.name }) { category ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onSelectCategory(category) },
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column {
+                            Text(category.label, style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                text = "${categoryCounts[category] ?: 0} entries",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        Icon(Icons.Filled.ChevronRight, contentDescription = null)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ReferenceCategoryScreen(
+    category: ReferenceCategory,
+    entries: List<ReferenceEntry>,
+    searchQuery: String,
+    onQueryChange: (String) -> Unit,
+    expandedKey: String?,
+    onToggle: (String) -> Unit,
+    onLinkClick: (String) -> Unit,
+    onBack: () -> Unit,
+    listState: LazyListState,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onBack) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back to categories")
+            }
+            Text(category.label, style = MaterialTheme.typography.headlineSmall)
+        }
+
         OutlinedTextField(
             value = searchQuery,
-            onValueChange = { searchQuery = it },
+            onValueChange = onQueryChange,
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Search paths, talents, surges, conditions…") },
+            placeholder = { Text("Search ${category.label.lowercase()}…") },
             singleLine = true,
             leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
             trailingIcon = {
                 if (searchQuery.isNotEmpty()) {
-                    IconButton(onClick = { searchQuery = "" }) {
+                    IconButton(onClick = { onQueryChange("") }) {
                         Icon(Icons.Filled.Clear, contentDescription = "Clear search")
                     }
                 }
             },
         )
 
-        Row(
-            modifier = Modifier.horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            ReferenceCategory.entries.forEach { category ->
-                FilterChip(
-                    selected = selectedCategory == category,
-                    onClick = { selectedCategory = category },
-                    label = { Text(category.label) },
-                )
-            }
-        }
-
-        if (filteredEntries.isEmpty()) {
+        if (entries.isEmpty()) {
             Text(
                 text = "No entries match your search.",
                 style = MaterialTheme.typography.bodyMedium,
@@ -288,14 +361,12 @@ fun ReferenceScreen(focusKey: String? = null, onFocusHandled: () -> Unit = {}) {
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                items(filteredEntries, key = { it.key }) { entry ->
+                items(entries, key = { it.key }) { entry ->
                     ReferenceEntryCard(
                         entry = entry,
                         expanded = expandedKey == entry.key,
-                        onToggle = {
-                            expandedKey = if (expandedKey == entry.key) null else entry.key
-                        },
-                        onLinkClick = ::jumpTo,
+                        onToggle = { onToggle(entry.key) },
+                        onLinkClick = onLinkClick,
                     )
                 }
             }
