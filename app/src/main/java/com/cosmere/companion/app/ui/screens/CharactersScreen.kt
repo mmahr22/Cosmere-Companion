@@ -125,6 +125,7 @@ fun CharactersScreen(
                 viewModel.save(character)
                 isCreating = false
             },
+            onCancel = { isCreating = false },
         )
         openCharacter != null -> CharacterSheet(
             character = openCharacter,
@@ -459,7 +460,7 @@ private enum class CreationStep(val title: String) {
 }
 
 @Composable
-private fun CharacterCreationForm(onCreate: (PlayerCharacter) -> Unit) {
+private fun CharacterCreationForm(onCreate: (PlayerCharacter) -> Unit, onCancel: () -> Unit) {
     val heroicPaths = remember { RulesRepository.paths.filter { it.type == "heroic" } }
     val radiantPaths = remember { RulesRepository.paths.filter { it.type == "radiant" } }
 
@@ -509,7 +510,12 @@ private fun CharacterCreationForm(onCreate: (PlayerCharacter) -> Unit) {
 
     Column(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.padding(16.dp, 16.dp, 16.dp, 8.dp)) {
-            Text("Create Your Character", style = MaterialTheme.typography.headlineSmall)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = onCancel) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Cancel and return to characters")
+                }
+                Text("Create Your Character", style = MaterialTheme.typography.headlineSmall)
+            }
             Spacer(modifier = Modifier.height(8.dp))
             val remainingSuffix = when (currentStep) {
                 CreationStep.ATTRIBUTES ->
