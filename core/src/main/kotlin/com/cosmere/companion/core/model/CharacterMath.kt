@@ -26,6 +26,29 @@ object CharacterMath {
     fun maxFocus(willpower: Int): Int = 2 + willpower
 
     /**
+     * Lifting/Carrying Capacity table (chapter 3, "Strength" section): the
+     * max weight (lb.) a character can lift over their head in one attempt,
+     * or comfortably carry while walking, at a given Strength score.
+     */
+    fun liftingCapacityLb(strength: Int): Int = when {
+        strength <= 0 -> 100
+        strength <= 2 -> 200
+        strength <= 4 -> 500
+        strength <= 6 -> 1000
+        strength <= 8 -> 5000
+        else -> 10000
+    }
+
+    fun carryingCapacityLb(strength: Int): Int = when {
+        strength <= 0 -> 50
+        strength <= 2 -> 100
+        strength <= 4 -> 250
+        strength <= 6 -> 500
+        strength <= 8 -> 2500
+        else -> 5000
+    }
+
+    /**
      * Maximum health from the Character Advancement table: 10 + STR at
      * level 1, then +5/level through 5, +4 through 10, +3 through 15,
      * +2 through 20, and +1 per level beyond. Levels 6, 11, and 16 add

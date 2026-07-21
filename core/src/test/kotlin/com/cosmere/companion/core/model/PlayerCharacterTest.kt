@@ -182,4 +182,49 @@ class PlayerCharacterTest {
         val bonused = human.copy(bonusTalentPoints = 2)
         assertEquals(human.totalTalentPoints + 2, bonused.totalTalentPoints)
     }
+
+    @Test
+    fun `carried weight sums inventory item weight times quantity`() {
+        val character = PlayerCharacter(
+            name = "Lopen",
+            attributes = attributes,
+            heroicPathId = "warrior",
+            inventory = mapOf("knife" to 2, "longsword" to 1),
+        )
+
+        // knife 1 lb. x2 + longsword 3 lb. x1
+        assertEquals(5.0, character.carriedWeightLb)
+    }
+
+    @Test
+    fun `carrying capacity scales with effective Strength and flags when exceeded`() {
+        val character = PlayerCharacter(
+            name = "Lopen",
+            attributes = attributes, // STRENGTH 2 -> 100 lb. capacity
+            heroicPathId = "warrior",
+        )
+        assertEquals(100, character.carryingCapacityLb)
+        assertEquals(false, character.isOverCarryingCapacity)
+
+        val overloaded = character.copy(inventory = mapOf("longsword" to 50))
+        assertEquals(true, overloaded.isOverCarryingCapacity)
+    }
+
+    @Test
+    fun `wielding limit allows two one-handed weapons or a single Two-Handed weapon`() {
+        val unarmed = PlayerCharacter(name = "Kaladin", attributes = attributes, heroicPathId = "warrior")
+        assertEquals(true, unarmed.canWieldAdditionalWeapon("knife"))
+        assertEquals(true, unarmed.canWieldAdditionalWeapon("longsword")) // Two-Handed, but nothing else equipped yet
+
+        val oneHandWielded = unarmed.copy(equippedWeaponIds = listOf("knife"))
+        assertEquals(true, oneHandWielded.canWieldAdditionalWeapon("shield")) // 2nd one-handed weapon: fine
+        assertEquals(false, oneHandWielded.canWieldAdditionalWeapon("longsword")) // can't add a Two-Handed on top
+
+        val twoWielded = unarmed.copy(equippedWeaponIds = listOf("knife", "shield"))
+        assertEquals(false, twoWielded.canWieldAdditionalWeapon("rapier")) // already at the limit of two
+        assertEquals(true, twoWielded.canWieldAdditionalWeapon("knife")) // already-equipped: unwielding is always fine
+
+        val twoHandWielded = unarmed.copy(equippedWeaponIds = listOf("longsword"))
+        assertEquals(false, twoHandWielded.canWieldAdditionalWeapon("knife")) // can't add anything alongside a Two-Handed weapon
+    }
 }

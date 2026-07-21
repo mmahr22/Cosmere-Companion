@@ -53,6 +53,10 @@ import com.cosmere.companion.core.data.RulesRepository
  * feeds into a derived stat ([deflectValue]) today — deflect is the one
  * piece of gear math this app tracks outside of combat, since everything
  * else an item's traits do (damage, special actions) only matters mid-fight.
+ * [carriedWeightLb]/[carryingCapacityLb] implement the book's optional
+ * carrying-capacity guideline (chapter 3, "Strength"); [canWieldAdditionalWeapon]
+ * implements the wielding limit from chapter 7 ("Wielding Weapons"): at most
+ * two weapons, or one Two-Handed weapon, equipped at a time.
  *
  * [purchasedTalentIds] are the ids of every talent this character has
  * actually taken, including the free heroic/Radiant/ancestry key talents
@@ -128,6 +132,29 @@ data class PlayerCharacter(
     /** Deflect value from the currently worn armor, or 0 if none is equipped. */
     val deflectValue: Int
         get() = equippedArmorId?.let { RulesRepository.itemById(it)?.deflectValue } ?: 0
+
+    /** Total weight of everything owned (worn, wielded, or merely carried); see [Item.weightLb]. */
+    val carriedWeightLb: Double
+        get() = inventory.entries.sumOf { (id, qty) -> (RulesRepository.itemById(id)?.weightLb ?: 0.0) * qty }
+
+    /** Max weight this character can comfortably carry before becoming Slowed; scales with effective Strength. */
+    val carryingCapacityLb: Int
+        get() = CharacterMath.carryingCapacityLb(effectiveAttribute(Attribute.STRENGTH))
+
+    val isOverCarryingCapacity: Boolean
+        get() = carriedWeightLb > carryingCapacityLb
+
+    /** Whether wielding [itemId] alongside any currently equipped weapons stays within the book's limit. */
+    fun canWieldAdditionalWeapon(itemId: String): Boolean {
+        if (itemId in equippedWeaponIds) return true
+        val item = RulesRepository.itemById(itemId) ?: return true
+        val equippedItems = equippedWeaponIds.mapNotNull { RulesRepository.itemById(it) }
+        return if ("Two-Handed" in item.traits) {
+            equippedItems.isEmpty()
+        } else {
+            equippedItems.none { "Two-Handed" in it.traits } && equippedItems.size < 2
+        }
+    }
 
     /** Talent-point budget for [level] (see [CharacterMath.totalTalentPoints]), plus any [bonusTalentPoints]. */
     val totalTalentPoints: Int

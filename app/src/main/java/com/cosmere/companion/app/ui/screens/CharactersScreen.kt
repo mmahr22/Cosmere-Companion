@@ -1631,10 +1631,10 @@ private fun InventorySection(character: PlayerCharacter, onUpdate: (PlayerCharac
                 character.copy(equippedArmorId = if (character.equippedArmorId == item.id) null else item.id),
             )
             ItemType.WEAPON -> {
-                val newWeapons = if (item.id in character.equippedWeaponIds) {
-                    character.equippedWeaponIds - item.id
-                } else {
-                    character.equippedWeaponIds + item.id
+                val newWeapons = when {
+                    item.id in character.equippedWeaponIds -> character.equippedWeaponIds - item.id
+                    character.canWieldAdditionalWeapon(item.id) -> character.equippedWeaponIds + item.id
+                    else -> character.equippedWeaponIds
                 }
                 onUpdate(character.copy(equippedWeaponIds = newWeapons))
             }
@@ -1671,6 +1671,17 @@ private fun InventorySection(character: PlayerCharacter, onUpdate: (PlayerCharac
         }
     }
 
+    Text(
+        "Carrying ${formatWeight(character.carriedWeightLb)} / ${character.carryingCapacityLb} lb." +
+            if (character.isOverCarryingCapacity) " — over capacity" else "",
+        style = MaterialTheme.typography.bodySmall,
+        color = if (character.isOverCarryingCapacity) {
+            MaterialTheme.colorScheme.error
+        } else {
+            MaterialTheme.colorScheme.onSurfaceVariant
+        },
+    )
+
     if (ownedEntries.isEmpty()) {
         Text("No items carried yet.", style = MaterialTheme.typography.bodySmall)
     } else {
@@ -1681,6 +1692,7 @@ private fun InventorySection(character: PlayerCharacter, onUpdate: (PlayerCharac
                 item = item,
                 quantity = quantity,
                 equipped = equipped,
+                canEquip = equipped || item.type != ItemType.WEAPON || character.canWieldAdditionalWeapon(item.id),
                 onQuantityChange = { setQuantity(item, it) },
                 onToggleEquip = if (item.type == ItemType.WEAPON || item.type == ItemType.ARMOR) {
                     { toggleEquip(item) }
@@ -1741,6 +1753,7 @@ private fun InventoryItemRow(
     item: Item,
     quantity: Int,
     equipped: Boolean,
+    canEquip: Boolean,
     onQuantityChange: (Int) -> Unit,
     onToggleEquip: (() -> Unit)?,
 ) {
@@ -1761,6 +1774,7 @@ private fun InventoryItemRow(
             FilterChip(
                 selected = equipped,
                 onClick = onToggleEquip,
+                enabled = canEquip,
                 label = { Text(if (equipped) "Equipped" else "Equip") },
             )
             Spacer(modifier = Modifier.width(4.dp))
@@ -1791,6 +1805,10 @@ private fun itemSubtitle(item: Item): String = when (item.type) {
     ItemType.FABRIAL -> "Fabrial"
     ItemType.EQUIPMENT -> "Equipment"
 }
+
+/** Trims a trailing ".0" so whole-number weights don't show a pointless decimal. */
+private fun formatWeight(lb: Double): String =
+    if (lb == lb.toLong().toDouble()) lb.toLong().toString() else lb.toString()
 
 @Composable
 private fun SingerFormsSection(character: PlayerCharacter, onUpdate: (PlayerCharacter) -> Unit) {

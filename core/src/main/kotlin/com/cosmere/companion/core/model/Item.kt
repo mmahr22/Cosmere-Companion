@@ -41,6 +41,18 @@ data class Item(
             "fabrial" -> ItemType.FABRIAL
             else -> ItemType.EQUIPMENT
         }
+
+    /**
+     * Best-effort numeric weight in pounds, for the carrying-capacity
+     * guideline the book itself calls optional ("you aren't expected to
+     * track exactly how much you're carrying... when it becomes important,
+     * you can use the following guidelines"). [weight] is free text — plain
+     * values ("3 lb."), ranges ("0.5–10 lb.", takes the lower bound), and
+     * qualifiers ("1 lb. each", "1 lb. (empty)") all parse via the first
+     * number found; "Weightless" and "—" (no weight listed) both count as 0.
+     */
+    val weightLb: Double
+        get() = Regex("""\d+(\.\d+)?""").find(weight.orEmpty())?.value?.toDoubleOrNull() ?: 0.0
 }
 
 @Serializable
