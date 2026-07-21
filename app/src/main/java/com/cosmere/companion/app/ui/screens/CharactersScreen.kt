@@ -639,15 +639,10 @@ private fun AncestryStep(draft: CharacterDraft, onChange: (CharacterDraft) -> Un
     HorizontalDivider()
 
     Text("Ancestry", style = MaterialTheme.typography.titleMedium)
-    var expandedAncestryId by remember { mutableStateOf<String?>(null) }
     RulesRepository.ancestries.forEach { ancestry ->
         SelectableAncestryRow(
             ancestry = ancestry,
             selected = draft.ancestryId == ancestry.id,
-            expanded = expandedAncestryId == ancestry.id,
-            onToggleExpand = {
-                expandedAncestryId = if (expandedAncestryId == ancestry.id) null else ancestry.id
-            },
             onClick = {
                 onChange(
                     draft.copy(
@@ -1034,13 +1029,7 @@ private fun ReviewStep(draft: CharacterDraft, heroicPath: GamePath?, radiantPath
 }
 
 @Composable
-private fun SelectableAncestryRow(
-    ancestry: Ancestry,
-    selected: Boolean,
-    expanded: Boolean,
-    onToggleExpand: () -> Unit,
-    onClick: () -> Unit,
-) {
+private fun SelectableAncestryRow(ancestry: Ancestry, selected: Boolean, onClick: () -> Unit) {
     Card(
         onClick = onClick,
         colors = CardDefaults.cardColors(
@@ -1049,27 +1038,15 @@ private fun SelectableAncestryRow(
         modifier = Modifier.fillMaxWidth(),
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Text(
-                    ancestry.name,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-                )
-                IconButton(onClick = onToggleExpand) {
-                    Icon(
-                        imageVector = if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
-                        contentDescription = if (expanded) "Collapse ${ancestry.name} description" else "Expand ${ancestry.name} description",
-                    )
-                }
-            }
+            Text(
+                ancestry.name,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+            )
             Text(
                 ancestry.summary,
                 style = MaterialTheme.typography.bodySmall,
-                maxLines = if (expanded) Int.MAX_VALUE else 2,
+                maxLines = if (selected) Int.MAX_VALUE else 2,
                 overflow = TextOverflow.Ellipsis,
             )
         }
