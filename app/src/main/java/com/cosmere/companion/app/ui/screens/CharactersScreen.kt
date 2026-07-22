@@ -1175,13 +1175,32 @@ private fun CharacterSheet(
                 }
             }
         }
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            if (heroicPath != null) {
-                SheetLink(heroicPath.name, onClick = { onOpenReference(pathReferenceKey(heroicPath.id)) })
-            } else {
-                Text(character.heroicPathId, style = MaterialTheme.typography.bodyMedium)
+        // One row per accessible heroic path (see PlayerCharacter.accessiblePathIds), ordered by
+        // when each path's key talent was first purchased — the starting path is always first.
+        val heroicPathSummaries = remember(character.purchasedTalentIds, character.heroicPathId, character.specialty) {
+            val purchasedTalents = character.purchasedTalentIds.mapNotNull { RulesRepository.talentById(it) }
+            val firstIndexByPath = mutableMapOf<String, Int>()
+            purchasedTalents.forEachIndexed { index, talent -> firstIndexByPath.getOrPut(talent.pathId) { index } }
+            character.accessiblePathIds
+                .mapNotNull { RulesRepository.pathById(it) }
+                .filter { it.type == "heroic" }
+                .sortedBy { firstIndexByPath[it.id] ?: Int.MAX_VALUE }
+                .map { path ->
+                    val talentsInPath = purchasedTalents.filter { it.pathId == path.id }
+                    val specialty = if (path.id == character.heroicPathId) {
+                        character.specialty
+                    } else {
+                        talentsInPath.mapNotNull { it.specialty }.groupingBy { it }.eachCount().maxByOrNull { it.value }?.key
+                    }
+                    Triple(path, specialty, talentsInPath.size)
+                }
+        }
+        heroicPathSummaries.forEach { (path, specialty, count) ->
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                SheetLink(path.name, onClick = { onOpenReference(pathReferenceKey(path.id)) })
+                val suffix = (specialty?.let { " ($it)" } ?: "") + " - $count"
+                Text(suffix, style = MaterialTheme.typography.bodyMedium)
             }
-            character.specialty?.let { Text(" — $it", style = MaterialTheme.typography.bodyMedium) }
         }
         radiantPath?.let { rp ->
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1516,15 +1535,30 @@ private fun TalentsSection(
     val spent = character.purchasedTalentIds.count { it !in freeTalentIds }
     val remaining = character.totalTalentPoints - spent
 
-    val accessiblePathIds = remember(heroicPath, radiantPath, ancestry) {
-        listOfNotNull(heroicPath?.id, radiantPath?.id, ancestry?.id)
+    // Paths already open to this character (granted at creation, or unlocked since by
+    // purchasing another path's key talent — see PlayerCharacter.accessiblePathIds).
+    val accessiblePathIds = remember(character.purchasedTalentIds, character.heroicPathId, character.radiantPathId, character.ancestryId) {
+        character.accessiblePathIds
     }
     val purchasedTalents = remember(character.purchasedTalentIds) {
         character.purchasedTalentIds.mapNotNull { RulesRepository.talentById(it) }.sortedBy { it.name }
     }
-    val available = remember(character.purchasedTalentIds, accessiblePathIds, character.skillRanks, character.level) {
-        accessiblePathIds
-            .flatMap { RulesRepository.talentsForPath(it) }
+    // Talents from already-open trees, plus the key talent of any heroic path not yet taken —
+    // per the book, "you can follow as many heroic paths and specialties as you wish." — plus,
+    // if not yet Radiant, each order's First Ideal talent (swearing it is how a character bonds
+    // a spren and becomes Radiant through play, not just at creation); its own prerequisiteLevel
+    // already gates this to level 2+.
+    val available = remember(character.purchasedTalentIds, accessiblePathIds, character.radiantPathId, character.skillRanks, character.level) {
+        val newHeroicPathKeyTalents = RulesRepository.paths
+            .filter { it.type == "heroic" && it.id !in accessiblePathIds }
+            .mapNotNull { RulesRepository.talentById(it.keyTalentId) }
+        val newRadiantPathKeyTalents = if (character.radiantPathId == null) {
+            RulesRepository.paths.filter { it.type == "radiant" }.mapNotNull { RulesRepository.talentById(it.keyTalentId) }
+        } else {
+            emptyList()
+        }
+        (accessiblePathIds.flatMap { RulesRepository.talentsForPath(it) } + newHeroicPathKeyTalents + newRadiantPathKeyTalents)
+            .distinctBy { it.id }
             .filter { it.id !in character.purchasedTalentIds && talentPrerequisitesMet(it, character) }
             .sortedBy { it.name }
     }
@@ -1545,11 +1579,43 @@ private fun TalentsSection(
                     DropdownMenuItem(text = { Text("No eligible talents") }, onClick = {}, enabled = false)
                 }
                 available.forEach { talent ->
+                    val isNewPath = talent.isKey && talent.pathId !in accessiblePathIds
                     DropdownMenuItem(
-                        text = { Text(talent.name) },
+                        text = {
+                            Column {
+                                Text(talent.name)
+                                val talentPath = RulesRepository.pathById(talent.pathId)
+                                val subtitle = if (isNewPath) {
+                                    val label = if (talentPath?.type == "radiant") "New Radiant order" else "New path"
+                                    "$label — ${talentPath?.name ?: talent.pathId}"
+                                } else {
+                                    talent.specialty ?: talentPath?.name
+                                }
+                                subtitle?.let {
+                                    Text(it, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                            }
+                        },
                         onClick = {
                             addMenuExpanded = false
-                            onUpdate(character.copy(purchasedTalentIds = character.purchasedTalentIds + talent.id))
+                            val talentPath = RulesRepository.pathById(talent.pathId)
+                            if (talent.isKey && talentPath?.type == "radiant") {
+                                // Swearing the First Ideal bonds a spren: adopt the order and grant its two surges,
+                                // mirroring what the creation wizard does for a character who starts already Radiant.
+                                var skillRanks = character.skillRanks
+                                talentPath.surgeIds.forEach { surgeId ->
+                                    skillRanks = skillRanks + (surgeId to maxOf(skillRanks[surgeId] ?: 0, 1))
+                                }
+                                onUpdate(
+                                    character.copy(
+                                        purchasedTalentIds = character.purchasedTalentIds + talent.id,
+                                        radiantPathId = talentPath.id,
+                                        skillRanks = skillRanks,
+                                    ),
+                                )
+                            } else {
+                                onUpdate(character.copy(purchasedTalentIds = character.purchasedTalentIds + talent.id))
+                            }
                         },
                     )
                 }

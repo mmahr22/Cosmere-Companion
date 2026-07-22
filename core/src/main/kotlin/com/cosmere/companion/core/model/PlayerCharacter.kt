@@ -67,6 +67,13 @@ import com.cosmere.companion.core.data.RulesRepository
  * [spokenIdeal] is derived, not stored: the highest [Talent.grantsIdeal]
  * among purchased talents belonging to [radiantPathId]'s tree, or 0 if the
  * character isn't (yet) Radiant.
+ *
+ * [accessiblePathIds] implements the book's multi-pathing rule ("you can
+ * follow as many heroic paths and specialties as you wish"): a path's talent
+ * tree opens up once its key talent is purchased, so beyond the paths
+ * granted at creation ([heroicPathId], [radiantPathId], and an ancestry's
+ * own talent tree such as the Singer form tree), any additional path whose
+ * key talent shows up in [purchasedTalentIds] counts too.
  */
 data class PlayerCharacter(
     // 0 means "not yet persisted" — Room assigns a real autoGenerate id on first save.
@@ -171,5 +178,15 @@ data class PlayerCharacter(
                 .mapNotNull { RulesRepository.talentById(it) }
                 .filter { it.pathId == pathId }
                 .maxOfOrNull { it.grantsIdeal ?: 0 } ?: 0
+        }
+
+    /** Every path (heroic, Radiant, or ancestry) whose talent tree is currently open to this character. */
+    val accessiblePathIds: List<String>
+        get() {
+            val purchasedKeyPathIds = purchasedTalentIds
+                .mapNotNull { RulesRepository.talentById(it) }
+                .filter { it.isKey }
+                .map { it.pathId }
+            return (listOfNotNull(heroicPathId, radiantPathId, ancestryId) + purchasedKeyPathIds).distinct()
         }
 }

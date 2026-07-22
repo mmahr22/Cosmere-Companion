@@ -184,6 +184,24 @@ class PlayerCharacterTest {
     }
 
     @Test
+    fun `accessible path ids start with the granted paths and grow as key talents are purchased`() {
+        val character = PlayerCharacter(
+            name = "Shallan",
+            attributes = attributes,
+            heroicPathId = "scholar",
+            radiantPathId = "lightweaver",
+            purchasedTalentIds = listOf("erudition", "first_ideal_lightweaver"),
+        )
+        assertEquals(setOf("scholar", "lightweaver"), character.accessiblePathIds.toSet())
+
+        // Buying another heroic path's key talent (multi-pathing) opens that path's tree too.
+        val multiPathed = character.copy(
+            purchasedTalentIds = character.purchasedTalentIds + "vigilant_stance",
+        )
+        assertEquals(setOf("scholar", "lightweaver", "warrior"), multiPathed.accessiblePathIds.toSet())
+    }
+
+    @Test
     fun `carried weight sums inventory item weight times quantity`() {
         val character = PlayerCharacter(
             name = "Lopen",
