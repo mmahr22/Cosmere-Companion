@@ -21,13 +21,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Casino
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
@@ -52,13 +53,17 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.ScrollableTabRow
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -77,6 +82,8 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
@@ -84,6 +91,7 @@ import com.cosmere.companion.app.data.readCharacterExport
 import com.cosmere.companion.app.data.saveAvatar
 import com.cosmere.companion.app.data.writeCharacterExport
 import com.cosmere.companion.core.data.RulesRepository
+import com.cosmere.companion.core.dice.DamageRollResult
 import com.cosmere.companion.core.model.Ancestry
 import com.cosmere.companion.core.model.Attribute
 import com.cosmere.companion.core.model.CharacterMath
@@ -96,6 +104,7 @@ import com.cosmere.companion.core.model.PlayerCharacter
 import com.cosmere.companion.core.model.Skill
 import com.cosmere.companion.core.model.Talent
 import java.io.File
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -105,7 +114,6 @@ private const val MAX_CULTURES = 2
 @Composable
 fun CharactersScreen(
     onOpenReference: (String) -> Unit = {},
-    onRoll: (Int) -> Unit = {},
     viewModel: CharacterViewModel = viewModel(),
 ) {
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
@@ -136,7 +144,6 @@ fun CharactersScreen(
                 openCharacterId = 0
             },
             onOpenReference = onOpenReference,
-            onRoll = onRoll,
         )
         else -> CharacterRosterScreen(
             characters = characters,
@@ -362,22 +369,22 @@ private fun SheetLink(text: String, onClick: () -> Unit) {
     )
 }
 
-/** A small stepper for ad-hoc GM-granted points, shown under a budgeted section's header. */
+/** A small stepper for ad-hoc GM-granted points, shown on the GM tab or under a budgeted section's header in the Level Up screen. */
 @Composable
-private fun GmBonusRow(value: Int, onChange: (Int) -> Unit) {
+private fun GmBonusRow(label: String = "GM Bonus", value: Int, onChange: (Int) -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(
-            "GM Bonus",
+            label,
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         IconButton(
             onClick = { if (value > 0) onChange(value - 1) },
             enabled = value > 0,
-        ) { Icon(Icons.Filled.Remove, contentDescription = "Decrease GM bonus") }
+        ) { Icon(Icons.Filled.Remove, contentDescription = "Decrease $label") }
         Text("$value", modifier = Modifier.width(24.dp), textAlign = TextAlign.Center)
         IconButton(onClick = { onChange(value + 1) }) {
-            Icon(Icons.Filled.Add, contentDescription = "Increase GM bonus")
+            Icon(Icons.Filled.Add, contentDescription = "Increase $label")
         }
     }
 }
@@ -1084,6 +1091,15 @@ private fun SelectablePathRow(path: GamePath, selected: Boolean, onClick: () -> 
     }
 }
 
+private enum class SheetTab(val label: String) {
+    MAIN("Main"),
+    SKILLS("Skills"),
+    TALENTS("Talents"),
+    INVENTORY("Inventory"),
+    NOTES("Notes"),
+    GM("GM"),
+}
+
 @Composable
 private fun CharacterSheet(
     character: PlayerCharacter,
@@ -1091,7 +1107,6 @@ private fun CharacterSheet(
     onBack: () -> Unit,
     onDelete: () -> Unit,
     onOpenReference: (String) -> Unit,
-    onRoll: (Int) -> Unit,
 ) {
     val heroicPath = remember(character.heroicPathId) { RulesRepository.pathById(character.heroicPathId) }
     val radiantPath = remember(character.radiantPathId) {
@@ -1104,18 +1119,6 @@ private fun CharacterSheet(
         character.cultureIds.mapNotNull { RulesRepository.cultureById(it) }
     }
 
-    fun updateSkillRank(skillId: String, newRank: Int) {
-        val clamped = newRank.coerceIn(0, CharacterMath.maxSkillRank(character.level))
-        onUpdate(character.copy(skillRanks = character.skillRanks + (skillId to clamped)))
-    }
-
-    val skillPointsSpent = Skill.entries.sumOf { skill ->
-        val autoMinimum = if (skill.name == heroicPath?.startingSkillId) 1 else 0
-        (character.skillRank(skill.name) - autoMinimum).coerceAtLeast(0)
-    }
-    val skillPointsRemaining = (character.totalSkillRanks - 1) - skillPointsSpent
-    val attributePointsRemaining = character.totalAttributePoints - character.attributes.values.sum()
-
     val context = LocalContext.current
     val pickAvatar = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri != null) {
@@ -1124,13 +1127,16 @@ private fun CharacterSheet(
         }
     }
 
-    Column(
+    val pagerState = rememberPagerState(pageCount = { SheetTab.entries.size })
+    val coroutineScope = rememberCoroutineScope()
+
+    Column(modifier = Modifier.fillMaxSize()) {
+      Column(
         modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
+      ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back to characters")
@@ -1212,6 +1218,7 @@ private fun CharacterSheet(
             }
         }
 
+        var showLevelUpDialog by remember { mutableStateOf(false) }
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -1221,214 +1228,421 @@ private fun CharacterSheet(
                 "Level ${character.level}",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
+                modifier = Modifier.clickable { showLevelUpDialog = true },
             )
             if (character.level < 20) {
-                Button(onClick = { onUpdate(character.copy(level = character.level + 1)) }) {
+                Button(
+                    onClick = {
+                        onUpdate(character.copy(level = character.level + 1))
+                        showLevelUpDialog = true
+                    },
+                ) {
                     Text("Level Up")
                 }
             }
         }
-
-        if (character.ancestryId == "singer") {
-            HorizontalDivider()
-            SingerFormsSection(character = character, onUpdate = onUpdate)
-        }
-
-        HorizontalDivider()
-
-        ResourceTracker(
-            label = "Health",
-            current = character.currentHealth,
-            max = character.maxHealth,
-            onCurrentChange = { onUpdate(character.copy(currentHealth = it.coerceIn(0, character.maxHealth))) },
-        )
-        ResourceTracker(
-            label = "Focus",
-            current = character.currentFocus,
-            max = character.maxFocus,
-            onCurrentChange = { onUpdate(character.copy(currentFocus = it.coerceIn(0, character.maxFocus))) },
-        )
-        ResourceTracker(
-            label = "Investiture",
-            current = character.currentInvestiture,
-            max = character.maxInvestiture,
-            onCurrentChange = { onUpdate(character.copy(currentInvestiture = it.coerceIn(0, character.maxInvestiture))) },
-            onMaxChange = { newMax ->
-                val clampedMax = newMax.coerceAtLeast(0)
-                onUpdate(
-                    character.copy(
-                        maxInvestiture = clampedMax,
-                        currentInvestiture = character.currentInvestiture.coerceAtMost(clampedMax),
-                    ),
-                )
-            },
-        )
-
-        HorizontalDivider()
-        ConditionsSection(character = character, onUpdate = onUpdate, onOpenReference = onOpenReference)
-
-        HorizontalDivider()
-
-        Text(
-            "Attributes" + pointsSuffix(attributePointsRemaining),
-            style = MaterialTheme.typography.titleMedium,
-        )
-        GmBonusRow(
-            value = character.bonusAttributePoints,
-            onChange = { onUpdate(character.copy(bonusAttributePoints = it)) },
-        )
-        Attribute.entries.forEach { attribute ->
-            val value = character.attribute(attribute)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Text("${attribute.displayName} (${attribute.abbreviation})")
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(
-                        onClick = {
-                            if (value > 0) {
-                                onUpdate(character.copy(attributes = character.attributes + (attribute to value - 1)))
-                            }
-                        },
-                        enabled = value > 0,
-                    ) { Icon(Icons.Filled.Remove, contentDescription = "Decrease ${attribute.displayName}") }
-                    Text("$value", modifier = Modifier.width(24.dp), textAlign = TextAlign.Center)
-                    IconButton(
-                        onClick = {
-                            if (value < CharacterMath.ATTRIBUTE_LEVEL_CAP && attributePointsRemaining > 0) {
-                                onUpdate(character.copy(attributes = character.attributes + (attribute to value + 1)))
-                            }
-                        },
-                        enabled = value < CharacterMath.ATTRIBUTE_LEVEL_CAP && attributePointsRemaining > 0,
-                    ) { Icon(Icons.Filled.Add, contentDescription = "Increase ${attribute.displayName}") }
-                }
-            }
-        }
-
-        HorizontalDivider()
-
-        Text("Defenses", style = MaterialTheme.typography.titleMedium)
-        Defense.entries.forEach { defense ->
-            val pair = Attribute.entries.filter { it.defense == defense }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Text("${defense.displayName} (${pair.joinToString(" + ") { it.abbreviation }})")
-                Text("${character.defense(defense)}", fontWeight = FontWeight.Bold)
-            }
-        }
-
-        HorizontalDivider()
-
-        Text(
-            "Skills" + pointsSuffix(skillPointsRemaining),
-            style = MaterialTheme.typography.titleMedium,
-        )
-        GmBonusRow(
-            value = character.bonusSkillPoints,
-            onChange = { onUpdate(character.copy(bonusSkillPoints = it)) },
-        )
-        val skillCap = CharacterMath.maxSkillRank(character.level)
-        Attribute.entries.forEach { attribute ->
-            Text(attribute.displayName, style = MaterialTheme.typography.labelLarge)
-            Skill.forAttribute(attribute).forEach { skill ->
-                val autoMinimum = if (skill.name == heroicPath?.startingSkillId) 1 else 0
-                val rank = character.skillRank(skill.name)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    Text(skill.displayName + if (autoMinimum > 0) " (path)" else "")
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(
-                            onClick = { onRoll(character.effectiveAttribute(attribute) + rank) },
-                        ) { Icon(Icons.Filled.Casino, contentDescription = "Roll ${skill.displayName}") }
-                        IconButton(
-                            onClick = { if (rank > autoMinimum) updateSkillRank(skill.name, rank - 1) },
-                            enabled = rank > autoMinimum,
-                        ) { Icon(Icons.Filled.Remove, contentDescription = "Decrease ${skill.displayName}") }
-                        Text("$rank", modifier = Modifier.width(24.dp), textAlign = TextAlign.Center)
-                        IconButton(
-                            onClick = {
-                                if (rank < skillCap && skillPointsRemaining > 0) updateSkillRank(skill.name, rank + 1)
-                            },
-                            enabled = rank < skillCap && skillPointsRemaining > 0,
-                        ) { Icon(Icons.Filled.Add, contentDescription = "Increase ${skill.displayName}") }
-                    }
-                }
-            }
-        }
-
-        val surgeIds = character.skillRanks.keys.filter { key -> Skill.entries.none { it.name == key } }
-        if (surgeIds.isNotEmpty()) {
-            Text("Surges", style = MaterialTheme.typography.labelLarge)
-            surgeIds.forEach { surgeId ->
-                val rank = character.skillRank(surgeId)
-                val surgeName = RulesRepository.surgeById(surgeId)?.name ?: surgeId
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    Text(surgeName)
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(
-                            onClick = { updateSkillRank(surgeId, rank - 1) },
-                            enabled = rank > 0,
-                        ) { Icon(Icons.Filled.Remove, contentDescription = "Decrease $surgeName") }
-                        Text("$rank", modifier = Modifier.width(24.dp), textAlign = TextAlign.Center)
-                        IconButton(
-                            onClick = { updateSkillRank(surgeId, rank + 1) },
-                            enabled = rank < skillCap,
-                        ) { Icon(Icons.Filled.Add, contentDescription = "Increase $surgeName") }
-                    }
-                }
-            }
-        }
-
-        HorizontalDivider()
-        TalentsSection(
-            character = character,
-            heroicPath = heroicPath,
-            radiantPath = radiantPath,
-            onUpdate = onUpdate,
-            onOpenReference = onOpenReference,
-        )
-
-        HorizontalDivider()
-        InventorySection(character = character, onUpdate = onUpdate)
-
-        HorizontalDivider()
-        Text("Notes", style = MaterialTheme.typography.titleMedium)
-        OutlinedTextField(
-            value = character.notes,
-            onValueChange = { onUpdate(character.copy(notes = it)) },
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Backstory, appearance, session notes…") },
-            minLines = 4,
-        )
-
-        var showDeleteConfirm by remember { mutableStateOf(false) }
-        OutlinedButton(
-            onClick = { showDeleteConfirm = true },
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text("Delete Character")
-        }
-        if (showDeleteConfirm) {
-            DeleteCharacterDialog(
-                characterName = character.name,
-                onConfirm = {
-                    showDeleteConfirm = false
-                    onDelete()
-                },
-                onDismiss = { showDeleteConfirm = false },
+        if (showLevelUpDialog) {
+            LevelUpDialog(
+                character = character,
+                heroicPath = heroicPath,
+                radiantPath = radiantPath,
+                onUpdate = onUpdate,
+                onOpenReference = onOpenReference,
+                onDismiss = { showLevelUpDialog = false },
             )
+        }
+
+      }
+
+      ScrollableTabRow(selectedTabIndex = pagerState.currentPage) {
+          SheetTab.entries.forEach { tab ->
+              Tab(
+                  selected = pagerState.currentPage == tab.ordinal,
+                  onClick = { coroutineScope.launch { pagerState.animateScrollToPage(tab.ordinal) } },
+                  text = { Text(tab.label) },
+              )
+          }
+      }
+
+      HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize()) { page ->
+      Column(
+          modifier = Modifier
+              .fillMaxSize()
+              .verticalScroll(rememberScrollState())
+              .padding(16.dp),
+          verticalArrangement = Arrangement.spacedBy(12.dp),
+      ) {
+        when (SheetTab.entries[page]) {
+            SheetTab.MAIN -> {
+                if (character.ancestryId == "singer") {
+                    SingerFormsSection(character = character, onUpdate = onUpdate)
+                    HorizontalDivider()
+                }
+
+                ResourceTracker(
+                    label = "Health",
+                    current = character.currentHealth,
+                    max = character.maxHealth,
+                    onCurrentChange = { onUpdate(character.copy(currentHealth = it.coerceIn(0, character.maxHealth))) },
+                )
+                ResourceTracker(
+                    label = "Focus",
+                    current = character.currentFocus,
+                    max = character.maxFocus,
+                    onCurrentChange = { onUpdate(character.copy(currentFocus = it.coerceIn(0, character.maxFocus))) },
+                )
+                ResourceTracker(
+                    label = "Investiture",
+                    current = character.currentInvestiture,
+                    max = character.maxInvestiture,
+                    onCurrentChange = { onUpdate(character.copy(currentInvestiture = it.coerceIn(0, character.maxInvestiture))) },
+                    onMaxChange = { newMax ->
+                        val clampedMax = newMax.coerceAtLeast(0)
+                        onUpdate(
+                            character.copy(
+                                maxInvestiture = clampedMax,
+                                currentInvestiture = character.currentInvestiture.coerceAtMost(clampedMax),
+                            ),
+                        )
+                    },
+                )
+
+                HorizontalDivider()
+                ConditionsSection(character = character, onUpdate = onUpdate, onOpenReference = onOpenReference)
+
+                HorizontalDivider()
+
+                Text("Attributes", style = MaterialTheme.typography.titleMedium)
+                Attribute.entries.forEach { attribute ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        Text("${attribute.displayName} (${attribute.abbreviation})")
+                        Text("${character.attribute(attribute)}", fontWeight = FontWeight.Bold)
+                    }
+                }
+
+                HorizontalDivider()
+
+                Text("Defenses", style = MaterialTheme.typography.titleMedium)
+                Defense.entries.forEach { defense ->
+                    val pair = Attribute.entries.filter { it.defense == defense }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        Text("${defense.displayName} (${pair.joinToString(" + ") { it.abbreviation }})")
+                        Text("${character.defense(defense)}", fontWeight = FontWeight.Bold)
+                    }
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Text("Deflect")
+                    Text("${character.deflectValue}", fontWeight = FontWeight.Bold)
+                }
+            }
+
+            SheetTab.SKILLS -> {
+                Text("Skills", style = MaterialTheme.typography.titleMedium)
+                Attribute.entries.forEach { attribute ->
+                    Text(attribute.displayName, style = MaterialTheme.typography.labelLarge)
+                    Skill.forAttribute(attribute).forEach { skill ->
+                        val autoMinimum = if (skill.name == heroicPath?.startingSkillId) 1 else 0
+                        val rank = character.skillRank(skill.name)
+                        val modifierValue = character.effectiveAttribute(attribute) + rank
+                        var rollState by remember(skill) { mutableStateOf<SkillRollUiState>(SkillRollUiState.Collapsed) }
+                        Column {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                            ) {
+                                Text(skill.displayName + if (autoMinimum > 0) " (path)" else "")
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    SkillRollTrigger(
+                                        label = skill.displayName,
+                                        modifierValue = modifierValue,
+                                        onStateChange = { rollState = it },
+                                    )
+                                    Text(
+                                        "$rank",
+                                        modifier = Modifier.width(24.dp),
+                                        textAlign = TextAlign.Center,
+                                        fontWeight = FontWeight.Bold,
+                                    )
+                                }
+                            }
+                            SkillRollExpansion(
+                                modifierValue = modifierValue,
+                                state = rollState,
+                                onStateChange = { rollState = it },
+                            )
+                        }
+                    }
+                }
+
+                val surgeIds = character.skillRanks.keys.filter { key -> Skill.entries.none { it.name == key } }
+                if (surgeIds.isNotEmpty()) {
+                    Text("Surges", style = MaterialTheme.typography.labelLarge)
+                    surgeIds.forEach { surgeId ->
+                        val rank = character.skillRank(surgeId)
+                        val surgeName = RulesRepository.surgeById(surgeId)?.name ?: surgeId
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                        ) {
+                            Text(surgeName)
+                            Text("$rank", fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
+
+            SheetTab.TALENTS -> {
+                Text("Talents", style = MaterialTheme.typography.titleMedium)
+                val purchasedTalents = remember(character.purchasedTalentIds) {
+                    character.purchasedTalentIds.mapNotNull { RulesRepository.talentById(it) }.sortedBy { it.name }
+                }
+                if (purchasedTalents.isEmpty()) {
+                    Text(
+                        "No talents yet.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                } else {
+                    purchasedTalents.forEach { talent ->
+                        Column {
+                            SheetLink(talent.name, onClick = { onOpenReference(talentReferenceKey(talent.id)) })
+                            Text(
+                                talent.specialty ?: (RulesRepository.pathById(talent.pathId)?.name ?: talent.pathId),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                }
+            }
+
+            SheetTab.INVENTORY -> InventorySection(character = character, onUpdate = onUpdate)
+
+            SheetTab.NOTES -> {
+                Text("Notes", style = MaterialTheme.typography.titleMedium)
+                OutlinedTextField(
+                    value = character.notes,
+                    onValueChange = { onUpdate(character.copy(notes = it)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text("Backstory, appearance, session notes…") },
+                    minLines = 4,
+                )
+
+                var showDeleteConfirm by remember { mutableStateOf(false) }
+                OutlinedButton(
+                    onClick = { showDeleteConfirm = true },
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text("Delete Character")
+                }
+                if (showDeleteConfirm) {
+                    DeleteCharacterDialog(
+                        characterName = character.name,
+                        onConfirm = {
+                            showDeleteConfirm = false
+                            onDelete()
+                        },
+                        onDismiss = { showDeleteConfirm = false },
+                    )
+                }
+            }
+
+            SheetTab.GM -> {
+                Text("GM Overrides", style = MaterialTheme.typography.titleMedium)
+                Text(
+                    "Manually grant bonus points beyond the normal level budget. Spend them from the " +
+                        "Level Up screen (tap \"Level ${character.level}\" above).",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                GmBonusRow(
+                    label = "Attribute Points",
+                    value = character.bonusAttributePoints,
+                    onChange = { onUpdate(character.copy(bonusAttributePoints = it)) },
+                )
+                GmBonusRow(
+                    label = "Skill Points",
+                    value = character.bonusSkillPoints,
+                    onChange = { onUpdate(character.copy(bonusSkillPoints = it)) },
+                )
+                GmBonusRow(
+                    label = "Talent Points",
+                    value = character.bonusTalentPoints,
+                    onChange = { onUpdate(character.copy(bonusTalentPoints = it)) },
+                )
+            }
+        }
+      }
+      }
+    }
+}
+
+/**
+ * The only place attributes, skills, surges, and talents can be spent — reached by tapping
+ * "Level {N}" or the "Level Up" button on the sheet header. Keeping allocation here (instead of
+ * editable inline on the Main/Skills/Talents tabs) makes those tabs a stable read-only reference
+ * during play; GM-granted bonus points (spent here too) are set separately on the GM tab.
+ */
+@Composable
+private fun LevelUpDialog(
+    character: PlayerCharacter,
+    heroicPath: GamePath?,
+    radiantPath: GamePath?,
+    onUpdate: (PlayerCharacter) -> Unit,
+    onOpenReference: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    fun updateSkillRank(skillId: String, newRank: Int) {
+        val clamped = newRank.coerceIn(0, CharacterMath.maxSkillRank(character.level))
+        onUpdate(character.copy(skillRanks = character.skillRanks + (skillId to clamped)))
+    }
+
+    val skillPointsSpent = Skill.entries.sumOf { skill ->
+        val autoMinimum = if (skill.name == heroicPath?.startingSkillId) 1 else 0
+        (character.skillRank(skill.name) - autoMinimum).coerceAtLeast(0)
+    }
+    val skillPointsRemaining = (character.totalSkillRanks - 1) - skillPointsSpent
+    val attributePointsRemaining = character.totalAttributePoints - character.attributes.values.sum()
+    val skillCap = CharacterMath.maxSkillRank(character.level)
+
+    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+        Surface(modifier = Modifier.fillMaxSize()) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text("Level ${character.level}", style = MaterialTheme.typography.headlineSmall)
+                    IconButton(onClick = onDismiss) {
+                        Icon(Icons.Filled.Close, contentDescription = "Done")
+                    }
+                }
+                HorizontalDivider()
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    Text(
+                        "Attributes" + pointsSuffix(attributePointsRemaining),
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                    Attribute.entries.forEach { attribute ->
+                        val value = character.attribute(attribute)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                        ) {
+                            Text("${attribute.displayName} (${attribute.abbreviation})")
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                IconButton(
+                                    onClick = {
+                                        if (value > 0) {
+                                            onUpdate(character.copy(attributes = character.attributes + (attribute to value - 1)))
+                                        }
+                                    },
+                                    enabled = value > 0,
+                                ) { Icon(Icons.Filled.Remove, contentDescription = "Decrease ${attribute.displayName}") }
+                                Text("$value", modifier = Modifier.width(24.dp), textAlign = TextAlign.Center)
+                                IconButton(
+                                    onClick = {
+                                        if (value < CharacterMath.ATTRIBUTE_LEVEL_CAP && attributePointsRemaining > 0) {
+                                            onUpdate(character.copy(attributes = character.attributes + (attribute to value + 1)))
+                                        }
+                                    },
+                                    enabled = value < CharacterMath.ATTRIBUTE_LEVEL_CAP && attributePointsRemaining > 0,
+                                ) { Icon(Icons.Filled.Add, contentDescription = "Increase ${attribute.displayName}") }
+                            }
+                        }
+                    }
+
+                    HorizontalDivider()
+
+                    Text(
+                        "Skills" + pointsSuffix(skillPointsRemaining),
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                    Attribute.entries.forEach { attribute ->
+                        Text(attribute.displayName, style = MaterialTheme.typography.labelLarge)
+                        Skill.forAttribute(attribute).forEach { skill ->
+                            val autoMinimum = if (skill.name == heroicPath?.startingSkillId) 1 else 0
+                            val rank = character.skillRank(skill.name)
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                            ) {
+                                Text(skill.displayName + if (autoMinimum > 0) " (path)" else "")
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    IconButton(
+                                        onClick = { if (rank > autoMinimum) updateSkillRank(skill.name, rank - 1) },
+                                        enabled = rank > autoMinimum,
+                                    ) { Icon(Icons.Filled.Remove, contentDescription = "Decrease ${skill.displayName}") }
+                                    Text("$rank", modifier = Modifier.width(24.dp), textAlign = TextAlign.Center)
+                                    IconButton(
+                                        onClick = {
+                                            if (rank < skillCap && skillPointsRemaining > 0) updateSkillRank(skill.name, rank + 1)
+                                        },
+                                        enabled = rank < skillCap && skillPointsRemaining > 0,
+                                    ) { Icon(Icons.Filled.Add, contentDescription = "Increase ${skill.displayName}") }
+                                }
+                            }
+                        }
+                    }
+
+                    val surgeIds = character.skillRanks.keys.filter { key -> Skill.entries.none { it.name == key } }
+                    if (surgeIds.isNotEmpty()) {
+                        Text("Surges", style = MaterialTheme.typography.labelLarge)
+                        surgeIds.forEach { surgeId ->
+                            val rank = character.skillRank(surgeId)
+                            val surgeName = RulesRepository.surgeById(surgeId)?.name ?: surgeId
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                            ) {
+                                Text(surgeName)
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    IconButton(
+                                        onClick = { updateSkillRank(surgeId, rank - 1) },
+                                        enabled = rank > 0,
+                                    ) { Icon(Icons.Filled.Remove, contentDescription = "Decrease $surgeName") }
+                                    Text("$rank", modifier = Modifier.width(24.dp), textAlign = TextAlign.Center)
+                                    IconButton(
+                                        onClick = { updateSkillRank(surgeId, rank + 1) },
+                                        enabled = rank < skillCap,
+                                    ) { Icon(Icons.Filled.Add, contentDescription = "Increase $surgeName") }
+                                }
+                            }
+                        }
+                    }
+
+                    HorizontalDivider()
+
+                    TalentsSection(
+                        character = character,
+                        heroicPath = heroicPath,
+                        radiantPath = radiantPath,
+                        onUpdate = onUpdate,
+                        onOpenReference = onOpenReference,
+                    )
+                }
+            }
         }
     }
 }
@@ -1622,10 +1836,6 @@ private fun TalentsSection(
             }
         }
     }
-    GmBonusRow(
-        value = character.bonusTalentPoints,
-        onChange = { onUpdate(character.copy(bonusTalentPoints = it)) },
-    )
 
     if (purchasedTalents.isEmpty()) {
         Text(
@@ -1714,13 +1924,23 @@ private fun InventorySection(character: PlayerCharacter, onUpdate: (PlayerCharac
         }
     }
 
-    Text("Inventory", style = MaterialTheme.typography.titleMedium)
+    var showAddItem by remember { mutableStateOf(false) }
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text("Inventory", style = MaterialTheme.typography.titleMedium)
+        IconButton(onClick = { showAddItem = true }) {
+            Icon(Icons.Filled.Add, contentDescription = "Add item")
+        }
+    }
 
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text("Equipped", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
             Text(
-                "Armor: ${equippedArmor?.name ?: "None"} (Deflect ${character.deflectValue})",
+                "Armor: ${equippedArmor?.name ?: "None"}",
                 style = MaterialTheme.typography.bodySmall,
             )
             if (equippedWeapons.isEmpty()) {
@@ -1728,16 +1948,7 @@ private fun InventorySection(character: PlayerCharacter, onUpdate: (PlayerCharac
             } else {
                 Text("Weapons:", style = MaterialTheme.typography.bodySmall)
                 equippedWeapons.forEach { weapon ->
-                    Column(modifier = Modifier.padding(start = 8.dp)) {
-                        Text(weapon.name, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
-                        weaponQuickStats(weapon)?.let {
-                            Text(
-                                it,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    }
+                    EquippedWeaponRow(item = weapon, character = character)
                 }
             }
         }
@@ -1775,45 +1986,84 @@ private fun InventorySection(character: PlayerCharacter, onUpdate: (PlayerCharac
         }
     }
 
-    HorizontalDivider()
+    if (showAddItem) {
+        AddItemDialog(
+            character = character,
+            onAdd = { item -> setQuantity(item, character.inventoryQuantity(item.id) + 1) },
+            onDismiss = { showAddItem = false },
+        )
+    }
+}
 
-    Text("Add Item", style = MaterialTheme.typography.labelLarge)
-    var addQuery by remember { mutableStateOf("") }
-    OutlinedTextField(
-        value = addQuery,
-        onValueChange = { addQuery = it },
-        modifier = Modifier.fillMaxWidth(),
-        placeholder = { Text("Search weapons, armor, equipment, fabrials…") },
-        singleLine = true,
-    )
-    if (addQuery.isNotBlank()) {
-        val matches = remember(addQuery) {
-            RulesRepository.items.filter { it.name.contains(addQuery, ignoreCase = true) }.take(8)
-        }
-        if (matches.isEmpty()) {
-            Text("No matching items.", style = MaterialTheme.typography.bodySmall)
+@Composable
+private fun AddItemDialog(character: PlayerCharacter, onAdd: (Item) -> Unit, onDismiss: () -> Unit) {
+    var query by remember { mutableStateOf("") }
+    val matches = remember(query) {
+        if (query.isBlank()) {
+            emptyList()
         } else {
-            matches.forEach { item ->
+            RulesRepository.items.filter { it.name.contains(query, ignoreCase = true) }.sortedBy { it.name }
+        }
+    }
+
+    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+        Surface(modifier = Modifier.fillMaxSize()) {
+            Column(modifier = Modifier.fillMaxSize()) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            setQuantity(item, character.inventoryQuantity(item.id) + 1)
-                            addQuery = ""
-                        }
-                        .padding(vertical = 8.dp),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(item.name, style = MaterialTheme.typography.bodyMedium)
+                    Text("Add Item", style = MaterialTheme.typography.headlineSmall)
+                    IconButton(onClick = onDismiss) {
+                        Icon(Icons.Filled.Close, contentDescription = "Close")
+                    }
+                }
+                OutlinedTextField(
+                    value = query,
+                    onValueChange = { query = it },
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                    placeholder = { Text("Search weapons, armor, equipment, fabrials…") },
+                    singleLine = true,
+                )
+                HorizontalDivider(modifier = Modifier.padding(top = 12.dp))
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(16.dp),
+                ) {
+                    if (query.isBlank()) {
                         Text(
-                            itemSubtitle(item),
+                            "Start typing to search the item list.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
+                    } else if (matches.isEmpty()) {
+                        Text("No matching items.", style = MaterialTheme.typography.bodySmall)
+                    } else {
+                        matches.forEach { item ->
+                            val carrying = character.inventoryQuantity(item.id)
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { onAdd(item) }
+                                    .padding(vertical = 10.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(item.name, style = MaterialTheme.typography.bodyMedium)
+                                    Text(
+                                        itemSubtitle(item) + if (carrying > 0) " • Carrying $carrying" else "",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+                                Icon(Icons.Filled.Add, contentDescription = "Add ${item.name}")
+                            }
+                        }
                     }
-                    Icon(Icons.Filled.Add, contentDescription = "Add ${item.name}")
                 }
             }
         }
@@ -1858,6 +2108,51 @@ private fun InventoryItemRow(
         IconButton(onClick = { onQuantityChange(quantity + 1) }) {
             Icon(Icons.Filled.Add, contentDescription = "Increase ${item.name} quantity")
         }
+    }
+}
+
+/**
+ * An equipped weapon's name plus inline attack/damage roll triggers — attack rolls a skill
+ * test against the weapon's governing skill (see [Item.skill]); damage rolls the weapon's own
+ * dice (see [Item.damage]) with no attribute bonus, matching the book's flat damage dice. Either
+ * roll is omitted if the item's text doesn't resolve to a known skill or a `NdN` dice expression
+ * (e.g. "Same as similar weapon", "Unique").
+ */
+@Composable
+private fun EquippedWeaponRow(item: Item, character: PlayerCharacter) {
+    val skill = remember(item.skill) { item.skill?.let { name -> Skill.entries.find { it.displayName == name } } }
+    val attackModifier = skill?.let { character.effectiveAttribute(it.attribute) + character.skillRank(it.name) }
+    val damageSpec = remember(item.damage) { item.damage?.let(::parseDamageDie) }
+
+    var attackRollState by remember(item.id) { mutableStateOf<SkillRollUiState>(SkillRollUiState.Collapsed) }
+    var damageResult by remember(item.id) { mutableStateOf<DamageRollResult?>(null) }
+
+    Column(modifier = Modifier.padding(start = 8.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(item.name, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+            if (attackModifier != null) {
+                SkillRollTrigger(
+                    label = "${item.name} attack",
+                    modifierValue = attackModifier,
+                    onStateChange = { attackRollState = it },
+                )
+            }
+            damageSpec?.let { (die, count) ->
+                DamageRollTrigger(
+                    label = "${item.name} damage",
+                    die = die,
+                    count = count,
+                    onResult = { damageResult = it },
+                )
+            }
+        }
+        weaponQuickStats(item)?.let {
+            Text(it, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        if (attackModifier != null) {
+            SkillRollExpansion(modifierValue = attackModifier, state = attackRollState, onStateChange = { attackRollState = it })
+        }
+        DamageRollExpansion(result = damageResult, onDismiss = { damageResult = null })
     }
 }
 

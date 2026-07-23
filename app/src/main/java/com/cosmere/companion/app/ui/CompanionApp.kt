@@ -3,7 +3,6 @@ package com.cosmere.companion.app.ui
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuBook
-import androidx.compose.material.icons.filled.Casino
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -23,7 +22,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.cosmere.companion.app.ui.screens.CharactersScreen
-import com.cosmere.companion.app.ui.screens.DiceScreen
 import com.cosmere.companion.app.ui.screens.ReferenceScreen
 
 private enum class TopLevelDestination(
@@ -32,7 +30,6 @@ private enum class TopLevelDestination(
     val icon: ImageVector,
 ) {
     Characters("characters", "Characters", Icons.Filled.Groups),
-    Dice("dice", "Dice", Icons.Filled.Casino),
     Reference("reference", "Reference", Icons.AutoMirrored.Filled.MenuBook),
 }
 
@@ -42,7 +39,6 @@ fun CompanionApp() {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
     var referenceFocusKey by rememberSaveable { mutableStateOf<String?>(null) }
-    var diceModifier by rememberSaveable { mutableStateOf<Int?>(null) }
 
     Scaffold(
         bottomBar = {
@@ -81,20 +77,6 @@ fun CompanionApp() {
                             restoreState = true
                         }
                     },
-                    onRoll = { rollModifier ->
-                        diceModifier = rollModifier
-                        navController.navigate(TopLevelDestination.Dice.route) {
-                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                )
-            }
-            composable(TopLevelDestination.Dice.route) {
-                DiceScreen(
-                    initialModifier = diceModifier,
-                    onInitialModifierConsumed = { diceModifier = null },
                 )
             }
             composable(TopLevelDestination.Reference.route) {
