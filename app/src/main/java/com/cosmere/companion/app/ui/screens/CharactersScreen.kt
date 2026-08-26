@@ -26,6 +26,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -1262,6 +1263,72 @@ private fun CharacterSheet(
             )
         }
 
+        var editingResource by remember { mutableStateOf<ResourceKind?>(null) }
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            ResourcePill(
+                label = "Health",
+                current = character.currentHealth,
+                max = character.maxHealth,
+                containerColor = MaterialTheme.colorScheme.error,
+                contentColor = MaterialTheme.colorScheme.onError,
+                onClick = { editingResource = ResourceKind.HEALTH },
+                modifier = Modifier.weight(1f),
+            )
+            ResourcePill(
+                label = "Focus",
+                current = character.currentFocus,
+                max = character.maxFocus,
+                containerColor = MaterialTheme.colorScheme.secondary,
+                contentColor = MaterialTheme.colorScheme.onSecondary,
+                onClick = { editingResource = ResourceKind.FOCUS },
+                modifier = Modifier.weight(1f),
+            )
+            ResourcePill(
+                label = "Investiture",
+                current = character.currentInvestiture,
+                max = character.maxInvestiture,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                onClick = { editingResource = ResourceKind.INVESTITURE },
+                modifier = Modifier.weight(1f),
+            )
+        }
+        when (editingResource) {
+            ResourceKind.HEALTH -> ResourceEditorDialog(
+                label = "Health",
+                current = character.currentHealth,
+                max = character.maxHealth,
+                onCurrentChange = { onUpdate(character.copy(currentHealth = it.coerceIn(0, character.maxHealth))) },
+                onMaxChange = null,
+                onDismiss = { editingResource = null },
+            )
+            ResourceKind.FOCUS -> ResourceEditorDialog(
+                label = "Focus",
+                current = character.currentFocus,
+                max = character.maxFocus,
+                onCurrentChange = { onUpdate(character.copy(currentFocus = it.coerceIn(0, character.maxFocus))) },
+                onMaxChange = null,
+                onDismiss = { editingResource = null },
+            )
+            ResourceKind.INVESTITURE -> ResourceEditorDialog(
+                label = "Investiture",
+                current = character.currentInvestiture,
+                max = character.maxInvestiture,
+                onCurrentChange = { onUpdate(character.copy(currentInvestiture = it.coerceIn(0, character.maxInvestiture))) },
+                onMaxChange = { newMax ->
+                    val clampedMax = newMax.coerceAtLeast(0)
+                    onUpdate(
+                        character.copy(
+                            maxInvestiture = clampedMax,
+                            currentInvestiture = character.currentInvestiture.coerceAtMost(clampedMax),
+                        ),
+                    )
+                },
+                onDismiss = { editingResource = null },
+            )
+            null -> {}
+        }
+
       }
 
       ScrollableTabRow(selectedTabIndex = pagerState.currentPage) {
@@ -1289,35 +1356,6 @@ private fun CharacterSheet(
                     HorizontalDivider()
                 }
 
-                ResourceTracker(
-                    label = "Health",
-                    current = character.currentHealth,
-                    max = character.maxHealth,
-                    onCurrentChange = { onUpdate(character.copy(currentHealth = it.coerceIn(0, character.maxHealth))) },
-                )
-                ResourceTracker(
-                    label = "Focus",
-                    current = character.currentFocus,
-                    max = character.maxFocus,
-                    onCurrentChange = { onUpdate(character.copy(currentFocus = it.coerceIn(0, character.maxFocus))) },
-                )
-                ResourceTracker(
-                    label = "Investiture",
-                    current = character.currentInvestiture,
-                    max = character.maxInvestiture,
-                    onCurrentChange = { onUpdate(character.copy(currentInvestiture = it.coerceIn(0, character.maxInvestiture))) },
-                    onMaxChange = { newMax ->
-                        val clampedMax = newMax.coerceAtLeast(0)
-                        onUpdate(
-                            character.copy(
-                                maxInvestiture = clampedMax,
-                                currentInvestiture = character.currentInvestiture.coerceAtMost(clampedMax),
-                            ),
-                        )
-                    },
-                )
-
-                HorizontalDivider()
                 ConditionsSection(character = character, onUpdate = onUpdate, onOpenReference = onOpenReference)
 
                 HorizontalDivider()
@@ -2263,48 +2301,94 @@ private fun SingerFormsSection(character: PlayerCharacter, onUpdate: (PlayerChar
     }
 }
 
+private enum class ResourceKind { HEALTH, FOCUS, INVESTITURE }
+
+/** A compact badge for a resource (Health/Focus/Investiture) shown in the sheet header. Tap to adjust. */
 @Composable
-private fun ResourceTracker(
+private fun ResourcePill(
+    label: String,
+    current: Int,
+    max: Int,
+    containerColor: Color,
+    contentColor: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(containerColor)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 8.dp, vertical = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            "$current/$max",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = contentColor,
+        )
+        Text(
+            label.uppercase(),
+            style = MaterialTheme.typography.labelSmall,
+            color = contentColor,
+        )
+    }
+}
+
+@Composable
+private fun ResourceEditorDialog(
     label: String,
     current: Int,
     max: Int,
     onCurrentChange: (Int) -> Unit,
-    onMaxChange: ((Int) -> Unit)? = null,
+    onMaxChange: ((Int) -> Unit)?,
+    onDismiss: () -> Unit,
 ) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(label, style = MaterialTheme.typography.titleMedium)
-                Text("$current / $max", style = MaterialTheme.typography.titleMedium)
-            }
-            LinearProgressIndicator(
-                progress = { if (max > 0) current.toFloat() / max else 0f },
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                IconButton(
-                    onClick = { if (current > 0) onCurrentChange(current - 1) },
-                    enabled = current > 0,
-                ) { Icon(Icons.Filled.Remove, contentDescription = "Decrease $label") }
-                IconButton(
-                    onClick = { if (current < max) onCurrentChange(current + 1) },
-                    enabled = current < max,
-                ) { Icon(Icons.Filled.Add, contentDescription = "Increase $label") }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(label) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text("$current / $max", style = MaterialTheme.typography.titleLarge)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        IconButton(
+                            onClick = { if (current > 0) onCurrentChange(current - 1) },
+                            enabled = current > 0,
+                        ) { Icon(Icons.Filled.Remove, contentDescription = "Decrease $label") }
+                        IconButton(
+                            onClick = { if (current < max) onCurrentChange(current + 1) },
+                            enabled = current < max,
+                        ) { Icon(Icons.Filled.Add, contentDescription = "Increase $label") }
+                    }
+                }
                 if (onMaxChange != null) {
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Text("Max:", style = MaterialTheme.typography.bodySmall)
-                    IconButton(
-                        onClick = { if (max > 0) onMaxChange(max - 1) },
-                        enabled = max > 0,
-                    ) { Icon(Icons.Filled.Remove, contentDescription = "Decrease max $label") }
-                    IconButton(onClick = { onMaxChange(max + 1) }) {
-                        Icon(Icons.Filled.Add, contentDescription = "Increase max $label")
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text("Max", style = MaterialTheme.typography.bodyMedium)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            IconButton(
+                                onClick = { if (max > 0) onMaxChange(max - 1) },
+                                enabled = max > 0,
+                            ) { Icon(Icons.Filled.Remove, contentDescription = "Decrease max $label") }
+                            IconButton(onClick = { onMaxChange(max + 1) }) {
+                                Icon(Icons.Filled.Add, contentDescription = "Increase max $label")
+                            }
+                        }
                     }
                 }
             }
-        }
-    }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) { Text("Done") }
+        },
+    )
 }
