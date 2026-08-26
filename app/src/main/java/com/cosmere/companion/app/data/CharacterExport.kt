@@ -5,6 +5,8 @@ import android.net.Uri
 import androidx.core.content.FileProvider
 import com.cosmere.companion.core.model.Attribute
 import com.cosmere.companion.core.model.PlayerCharacter
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -115,25 +117,27 @@ private fun CharacterExport.toDomain(): PlayerCharacter = PlayerCharacter(
 /**
  * Writes [character] as JSON into the app's cache dir and returns a
  * `content://` [Uri] (via [FileProvider]) suitable for a share-sheet intent.
+ * Suspends onto [Dispatchers.IO] for the file write.
  */
-fun writeCharacterExport(context: Context, character: PlayerCharacter): Uri {
+suspend fun writeCharacterExport(context: Context, character: PlayerCharacter): Uri = withContext(Dispatchers.IO) {
     val dir = File(context.cacheDir, "exports").apply { mkdirs() }
     val safeName = character.name.ifBlank { "character" }.replace(Regex("[^A-Za-z0-9_-]"), "_")
     val file = File(dir, "$safeName.json")
     val export = CharacterExportFile(format = EXPORT_FORMAT, character = character.toExport())
     file.writeText(Json.encodeToString(export))
-    return FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+    FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
 }
 
 /**
  * Reads and decodes a character export from [uri]. Throws if [uri] isn't
  * readable or isn't a recognized export file — callers should catch broadly
- * and show a simple "couldn't read that file" message.
+ * and show a simple "couldn't read that file" message. Suspends onto
+ * [Dispatchers.IO] for the file read.
  */
-fun readCharacterExport(context: Context, uri: Uri): PlayerCharacter {
+suspend fun readCharacterExport(context: Context, uri: Uri): PlayerCharacter = withContext(Dispatchers.IO) {
     val text = context.contentResolver.openInputStream(uri)?.use { it.readBytes().decodeToString() }
         ?: error("Unable to open $uri")
     val export = Json.decodeFromString<CharacterExportFile>(text)
     require(export.format == EXPORT_FORMAT) { "Not a Cosmere Companion character file" }
-    return export.character.toDomain()
+    export.character.toDomain()
 }

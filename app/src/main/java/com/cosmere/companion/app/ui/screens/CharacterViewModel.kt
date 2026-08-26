@@ -38,7 +38,9 @@ class CharacterViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun delete(character: PlayerCharacter) {
-        viewModelScope.launch { dao.delete(character.id) }
-        deleteAvatar(character.avatarPath)
+        viewModelScope.launch {
+            dao.delete(character.id)
+            deleteAvatar(character.avatarPath)
+        }
     }
 }
