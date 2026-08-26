@@ -25,6 +25,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -76,9 +77,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.style.TextDecoration
@@ -2355,7 +2359,14 @@ private fun ResourceEditorDialog(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text("$current / $max", style = MaterialTheme.typography.titleLarge)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        ResourceNumberField(
+                            value = current,
+                            onValueChange = onCurrentChange,
+                            contentDescription = label,
+                        )
+                        Text(" / $max", style = MaterialTheme.typography.titleLarge)
+                    }
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         IconButton(
                             onClick = { if (current > 0) onCurrentChange(current - 1) },
@@ -2373,7 +2384,14 @@ private fun ResourceEditorDialog(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Text("Max", style = MaterialTheme.typography.bodyMedium)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("Max ", style = MaterialTheme.typography.bodyMedium)
+                            ResourceNumberField(
+                                value = max,
+                                onValueChange = onMaxChange,
+                                contentDescription = "max $label",
+                            )
+                        }
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             IconButton(
                                 onClick = { if (max > 0) onMaxChange(max - 1) },
@@ -2390,5 +2408,25 @@ private fun ResourceEditorDialog(
         confirmButton = {
             TextButton(onClick = onDismiss) { Text("Done") }
         },
+    )
+}
+
+/** A narrow numeric text field, used inside [ResourceEditorDialog] so values can be typed directly instead of only stepped. */
+@Composable
+private fun ResourceNumberField(value: Int, onValueChange: (Int) -> Unit, contentDescription: String) {
+    var text by remember(value) { mutableStateOf(value.toString()) }
+    OutlinedTextField(
+        value = text,
+        onValueChange = { input ->
+            val digitsOnly = input.filter { it.isDigit() }
+            text = digitsOnly
+            digitsOnly.toIntOrNull()?.let(onValueChange)
+        },
+        modifier = Modifier
+            .width(72.dp)
+            .semantics { this.contentDescription = contentDescription },
+        singleLine = true,
+        textStyle = MaterialTheme.typography.titleLarge.copy(textAlign = TextAlign.Center),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
     )
 }
