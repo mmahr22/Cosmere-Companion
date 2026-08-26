@@ -1,5 +1,6 @@
 package com.cosmere.companion.app.ui
 
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuBook
@@ -65,7 +66,7 @@ fun CompanionApp() {
         NavHost(
             navController = navController,
             startDestination = TopLevelDestination.Characters.route,
-            modifier = Modifier.padding(innerPadding),
+            modifier = Modifier.padding(innerPadding).imePadding(),
         ) {
             composable(TopLevelDestination.Characters.route) {
                 CharactersScreen(
