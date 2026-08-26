@@ -56,9 +56,8 @@ Games, LLC, and it contains no book text.
 - **Category:** Games > Role Playing (or Entertainment/Tools if RPG isn't
   offered as a category for this account type — Role Playing fits best).
 - **Contact email:** use whatever support address you want publicly listed.
-- **Privacy policy URL:** see `privacy-policy.md` in this folder — needs to
-  be hosted somewhere public (e.g. GitHub Pages) before Play Console will
-  accept the URL.
+- **Privacy policy URL:** https://mmahr22.github.io/Cosmere-Companion/privacy-policy.html
+  (hosted via GitHub Pages, source at `docs/privacy-policy.html`).
 - **Content rating questionnaire (IARC):** this app itself shows no
   violent/explicit imagery — it's a text-based character sheet and dice
   roller for a tabletop RPG. Expect to answer "No" to violence/sexual
