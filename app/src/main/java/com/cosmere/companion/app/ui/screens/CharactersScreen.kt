@@ -2139,7 +2139,7 @@ private fun EquippedWeaponRow(item: Item, character: PlayerCharacter) {
             }
             damageSpec?.let { (die, count) ->
                 DamageRollTrigger(
-                    label = "${item.name} damage",
+                    label = item.name,
                     die = die,
                     count = count,
                     onResult = { damageResult = it },
