@@ -12,9 +12,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -81,6 +83,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -104,6 +107,7 @@ import com.cosmere.companion.app.data.saveAvatar
 import com.cosmere.companion.app.data.writeCharacterExport
 import com.cosmere.companion.core.data.RulesRepository
 import com.cosmere.companion.core.dice.DamageRollResult
+import com.cosmere.companion.core.model.Activation
 import com.cosmere.companion.core.model.Ancestry
 import com.cosmere.companion.core.model.Attribute
 import com.cosmere.companion.core.model.CharacterMath
@@ -379,6 +383,99 @@ private fun SheetLink(text: String, onClick: () -> Unit) {
         ),
         modifier = Modifier.clickable(onClick = onClick),
     )
+}
+
+private fun formatActivation(activation: Activation): String = when (activation) {
+    Activation.ACTION1 -> "Action (1)"
+    Activation.ACTION2 -> "Action (2)"
+    Activation.ACTION3 -> "Action (3)"
+    Activation.FREE -> "Free Action"
+    Activation.REACTION -> "Reaction"
+    Activation.SPECIAL -> "Special"
+    Activation.PASSIVE -> "Passive"
+}
+
+private fun formatSkillId(raw: String): String =
+    raw.lowercase().replace('_', ' ').replaceFirstChar { it.uppercase() }
+
+/**
+ * A talent's full rules text as an in-place popup, so reviewing a talent from the character
+ * sheet doesn't leave the sheet for the Reference tab. Tapping a prerequisite talent swaps the
+ * popup to that talent instead of leaving the sheet either; dismiss by tapping outside it.
+ */
+@Composable
+private fun TalentDetailDialog(talentId: String, onDismiss: () -> Unit) {
+    var currentTalentId by remember(talentId) { mutableStateOf(talentId) }
+    val talent = RulesRepository.talentById(currentTalentId) ?: return
+    val maxHeight = (LocalConfiguration.current.screenHeightDp * 0.85f).dp
+    Dialog(onDismissRequest = onDismiss) {
+        Card(modifier = Modifier.fillMaxWidth().heightIn(max = maxHeight)) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Text(talent.name, style = MaterialTheme.typography.titleLarge)
+                Text(
+                    buildString {
+                        append(formatActivation(talent.activationType))
+                        if (talent.isKey) append(" • Key Talent")
+                    },
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                Text(talent.summary, style = MaterialTheme.typography.bodyMedium)
+
+                val pathName = RulesRepository.pathById(talent.pathId)?.name ?: talent.pathId
+                Text("Path: $pathName", style = MaterialTheme.typography.bodyMedium)
+                talent.specialty?.let { Text("Specialty: $it", style = MaterialTheme.typography.bodyMedium) }
+                talent.focusCost?.let { Text("Focus Cost: $it", style = MaterialTheme.typography.bodyMedium) }
+
+                val otherPrerequisites = buildList {
+                    if (talent.prerequisiteSkills.isNotEmpty()) {
+                        add(
+                            "Skills: " + talent.prerequisiteSkills.entries.joinToString {
+                                "${formatSkillId(it.key)} ${it.value}"
+                            },
+                        )
+                    }
+                    talent.prerequisiteLevel?.let { add("Level: $it") }
+                    talent.prerequisiteIdealSpoken?.let { add("Requires Ideal $it spoken") }
+                    talent.prerequisiteOther?.let { add(it) }
+                }
+                if (otherPrerequisites.isEmpty() && talent.prerequisiteTalents.isEmpty()) {
+                    Text("Prerequisites: None", style = MaterialTheme.typography.bodyMedium)
+                } else {
+                    Text("Prerequisites:", style = MaterialTheme.typography.bodyMedium)
+                    otherPrerequisites.forEach { Text("• $it", style = MaterialTheme.typography.bodyMedium) }
+                    if (talent.prerequisiteTalents.isNotEmpty()) {
+                        val mode = if (talent.prerequisiteTalentsMode.equals("any", ignoreCase = true)) "any of" else "all of"
+                        Text("• Talents ($mode):", style = MaterialTheme.typography.bodyMedium)
+                        talent.prerequisiteTalents.forEach { prereqId ->
+                            val prereqName = RulesRepository.talentById(prereqId)?.name ?: prereqId
+                            SheetLink("◦ $prereqName", onClick = { currentTalentId = prereqId })
+                        }
+                    }
+                }
+
+                talent.page?.let {
+                    Text(
+                        "Page $it",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(4.dp))
+                TextButton(onClick = onDismiss, modifier = Modifier.align(Alignment.End)) {
+                    Text("Close")
+                }
+            }
+        }
+    }
 }
 
 /** A small stepper for ad-hoc GM-granted points, shown on the GM tab or under a budgeted section's header in the Level Up screen. */
@@ -1468,6 +1565,7 @@ private fun CharacterSheet(
                 val purchasedTalents = remember(character.purchasedTalentIds) {
                     character.purchasedTalentIds.mapNotNull { RulesRepository.talentById(it) }.sortedBy { it.name }
                 }
+                var detailTalentId by remember { mutableStateOf<String?>(null) }
                 if (purchasedTalents.isEmpty()) {
                     Text(
                         "No talents yet.",
@@ -1477,7 +1575,7 @@ private fun CharacterSheet(
                 } else {
                     purchasedTalents.forEach { talent ->
                         Column {
-                            SheetLink(talent.name, onClick = { onOpenReference(talentReferenceKey(talent.id)) })
+                            SheetLink(talent.name, onClick = { detailTalentId = talent.id })
                             Text(
                                 talent.specialty ?: (RulesRepository.pathById(talent.pathId)?.name ?: talent.pathId),
                                 style = MaterialTheme.typography.labelSmall,
@@ -1485,6 +1583,9 @@ private fun CharacterSheet(
                             )
                         }
                     }
+                }
+                detailTalentId?.let { id ->
+                    TalentDetailDialog(talentId = id, onDismiss = { detailTalentId = null })
                 }
             }
 
@@ -1839,6 +1940,7 @@ private fun TalentsSection(
             .sortedBy { it.name }
     }
     var addMenuExpanded by remember { mutableStateOf(false) }
+    var detailTalentId by remember { mutableStateOf<String?>(null) }
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -1913,7 +2015,7 @@ private fun TalentsSection(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    SheetLink(talent.name, onClick = { onOpenReference(talentReferenceKey(talent.id)) })
+                    SheetLink(talent.name, onClick = { detailTalentId = talent.id })
                     Text(
                         talent.specialty ?: (RulesRepository.pathById(talent.pathId)?.name ?: talent.pathId),
                         style = MaterialTheme.typography.labelSmall,
@@ -1929,6 +2031,10 @@ private fun TalentsSection(
                 }
             }
         }
+    }
+
+    detailTalentId?.let { id ->
+        TalentDetailDialog(talentId = id, onDismiss = { detailTalentId = null })
     }
 }
 
