@@ -2353,6 +2353,8 @@ private fun ResourcePill(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DefenseBadge(defense: Defense, value: Int, attributes: List<Pair<Attribute, Int>>, modifier: Modifier = Modifier) {
+    val tooltipState = rememberTooltipState()
+    val coroutineScope = rememberCoroutineScope()
     TooltipBox(
         positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
         tooltip = {
@@ -2360,7 +2362,8 @@ private fun DefenseBadge(defense: Defense, value: Int, attributes: List<Pair<Att
                 Text("10 + " + attributes.joinToString(" + ") { (attribute, value) -> "${attribute.displayName} ($value)" })
             }
         },
-        state = rememberTooltipState(),
+        state = tooltipState,
+        enableUserInput = false,
         modifier = modifier,
     ) {
         Column(
@@ -2368,6 +2371,7 @@ private fun DefenseBadge(defense: Defense, value: Int, attributes: List<Pair<Att
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(12.dp))
                 .background(MaterialTheme.colorScheme.surfaceVariant)
+                .clickable { coroutineScope.launch { tooltipState.show() } }
                 .padding(horizontal = 8.dp, vertical = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
