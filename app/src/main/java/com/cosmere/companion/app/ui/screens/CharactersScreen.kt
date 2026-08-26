@@ -468,11 +468,6 @@ private fun TalentDetailDialog(talentId: String, onDismiss: () -> Unit) {
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-
-                Spacer(modifier = Modifier.height(4.dp))
-                TextButton(onClick = onDismiss, modifier = Modifier.align(Alignment.End)) {
-                    Text("Close")
-                }
             }
         }
     }
