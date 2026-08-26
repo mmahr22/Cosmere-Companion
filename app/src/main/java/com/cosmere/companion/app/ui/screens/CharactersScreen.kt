@@ -1138,6 +1138,9 @@ private fun CharacterSheet(
     val cultures = remember(character.cultureIds) {
         character.cultureIds.mapNotNull { RulesRepository.cultureById(it) }
     }
+    val equippedArmor = remember(character.equippedArmorId) {
+        character.equippedArmorId?.let { RulesRepository.itemById(it) }
+    }
 
     val context = LocalContext.current
     val pickAvatar = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
@@ -1341,14 +1344,23 @@ private fun CharacterSheet(
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Defense.entries.forEach { defense ->
                 Box(modifier = Modifier.weight(1f)) {
-                    DefenseBadge(
-                        defense = defense,
+                    val attributes = Attribute.entries.filter { it.defense == defense }
+                        .map { it to character.effectiveAttribute(it) }
+                    StatBadge(
+                        label = defense.displayName,
                         value = character.defense(defense),
-                        attributes = Attribute.entries.filter { it.defense == defense }
-                            .map { it to character.effectiveAttribute(it) },
+                        tooltipText = "10 + " + attributes.joinToString(" + ") { (attribute, value) -> "${attribute.displayName} ($value)" },
                         modifier = Modifier.fillMaxWidth(),
                     )
                 }
+            }
+            Box(modifier = Modifier.weight(1f)) {
+                StatBadge(
+                    label = "Deflect",
+                    value = character.deflectValue,
+                    tooltipText = equippedArmor?.let { "${it.name}: Deflect ${it.deflectValue ?: 0}" } ?: "No armor equipped",
+                    modifier = Modifier.fillMaxWidth(),
+                )
             }
         }
 
@@ -1392,17 +1404,6 @@ private fun CharacterSheet(
                         Text("${attribute.displayName} (${attribute.abbreviation})")
                         Text("${character.attribute(attribute)}", fontWeight = FontWeight.Bold)
                     }
-                }
-
-                HorizontalDivider()
-
-                Text("Defenses", style = MaterialTheme.typography.titleMedium)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    Text("Deflect")
-                    Text("${character.deflectValue}", fontWeight = FontWeight.Bold)
                 }
             }
 
@@ -2349,19 +2350,15 @@ private fun ResourcePill(
     }
 }
 
-/** A compact defense badge in the sheet header. Long-press (or hover) shows a tooltip with the attribute breakdown. */
+/** A compact derived-stat badge in the sheet header. Tap shows a tooltip explaining what makes up the value. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun DefenseBadge(defense: Defense, value: Int, attributes: List<Pair<Attribute, Int>>, modifier: Modifier = Modifier) {
+private fun StatBadge(label: String, value: Int, tooltipText: String, modifier: Modifier = Modifier) {
     val tooltipState = rememberTooltipState()
     val coroutineScope = rememberCoroutineScope()
     TooltipBox(
         positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
-        tooltip = {
-            PlainTooltip {
-                Text("10 + " + attributes.joinToString(" + ") { (attribute, value) -> "${attribute.displayName} ($value)" })
-            }
-        },
+        tooltip = { PlainTooltip { Text(tooltipText) } },
         state = tooltipState,
         enableUserInput = false,
         modifier = modifier,
@@ -2382,7 +2379,7 @@ private fun DefenseBadge(defense: Defense, value: Int, attributes: List<Pair<Att
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
-                defense.displayName.uppercase(),
+                label.uppercase(),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
