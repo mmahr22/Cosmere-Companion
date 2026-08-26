@@ -48,6 +48,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -56,12 +57,16 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -1333,6 +1338,20 @@ private fun CharacterSheet(
             null -> {}
         }
 
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Defense.entries.forEach { defense ->
+                Box(modifier = Modifier.weight(1f)) {
+                    DefenseBadge(
+                        defense = defense,
+                        value = character.defense(defense),
+                        attributes = Attribute.entries.filter { it.defense == defense }
+                            .map { it to character.effectiveAttribute(it) },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            }
+        }
+
       }
 
       ScrollableTabRow(selectedTabIndex = pagerState.currentPage) {
@@ -1378,16 +1397,6 @@ private fun CharacterSheet(
                 HorizontalDivider()
 
                 Text("Defenses", style = MaterialTheme.typography.titleMedium)
-                Defense.entries.forEach { defense ->
-                    val pair = Attribute.entries.filter { it.defense == defense }
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                    ) {
-                        Text("${defense.displayName} (${pair.joinToString(" + ") { it.abbreviation }})")
-                        Text("${character.defense(defense)}", fontWeight = FontWeight.Bold)
-                    }
-                }
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -2337,6 +2346,43 @@ private fun ResourcePill(
             style = MaterialTheme.typography.labelSmall,
             color = contentColor,
         )
+    }
+}
+
+/** A compact defense badge in the sheet header. Long-press (or hover) shows a tooltip with the attribute breakdown. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun DefenseBadge(defense: Defense, value: Int, attributes: List<Pair<Attribute, Int>>, modifier: Modifier = Modifier) {
+    TooltipBox(
+        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+        tooltip = {
+            PlainTooltip {
+                Text("10 + " + attributes.joinToString(" + ") { (attribute, value) -> "${attribute.displayName} ($value)" })
+            }
+        },
+        state = rememberTooltipState(),
+        modifier = modifier,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .padding(horizontal = 8.dp, vertical = 8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                "$value",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                defense.displayName.uppercase(),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }
 
